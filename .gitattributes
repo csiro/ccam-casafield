@@ -1,0 +1,21 @@
+* text=auto !eol
+/casafield.f90 -text
+/casaread.f90 -text
+/ccinterp.f90 -text
+/ind_m.f90 -text
+/indices_m.f90 -text
+/jim_utils.f90 -text
+/jimcc_m.f90 -text
+/jimco_m.f90 -text
+/latltoij_m.f90 -text
+/makefile -text
+/misc.f90 -text
+/ncread.f90 -text
+/ncwrite.f90 -text
+/newmpar_m.f90 -text
+/nfft_m.f90 -text
+/parm_m.f90 -text
+/precis_m.f90 -text
+/readswitch.f90 -text
+/setxyz_m.f90 -text
+/xyzinfo_m.f90 -text
