@@ -1,38 +1,37 @@
 FF = ifort
-XFLAGS = -O3 -Qipo -QaxSSSE3,SSE3,SSE2 /arch:IA32 /Gm /static
-LIBS = netcdf.lib
-LDFLAGS = /link netcdf.lib /stack:9999999999
+XFLAGS = -O -xHost -ftz -I $(NETCDF_ROOT)/include
+LIBS = -L $(NETCDF_ROOT)/lib -L $(HDF5_HOME)/lib -lnetcdf -lnetcdff -lhdf5
 
-OBJT = casafield.obj casaread.obj setxyz_m.obj ccinterp.obj readswitch.obj jimcc_m.obj \
-       latltoij_m.obj xyzinfo_m.obj newmpar_m.obj indices_m.obj \
-       parm_m.obj precis_m.obj ind_m.obj jimco_m.obj jim_utils.obj nfft_m.obj \
-       ncread.obj ncwrite.obj misc.obj
+OBJT = casafield.o casaread.o setxyz_m.o ccinterp.o readswitch.o jimcc_m.o \
+       latltoij_m.o xyzinfo_m.o newmpar_m.o indices_m.o \
+       parm_m.o precis_m.o ind_m.o jimco_m.o jim_utils.o nfft_m.o \
+       ncread.o ncwrite.o misc.o
 
 casafield :$(OBJT)
-	$(FF) $(XFLAGS) $(OBJT) $(LIBS) $(LDFLAGS) -out:casafield.exe
+	$(FF) $(XFLAGS) $(OBJT) $(LIBS) $(LDFLAGS) -o casafield
 
 clean:
-	del *.obj core *.mod *.exe
+	rm *.o core *.mod casafield
 # This section gives the rules for building object modules.
 
 .SUFFIXES:.f90
-.f90.obj:
+.f90.o:
 	$(FF) -c $(XFLAGS) $<
-.f.obj:
+.f.o:
 	$(FF) -c $(XFLAGS) $<
 
-casafield.obj : ccinterp.obj
-casaread.obj : ccinterp.obj
-ccinterp.obj : ccinterp.f90 setxyz_m.obj xyzinfo_m.obj latltoij_m.obj newmpar_m.obj
-latltoij_m.obj : latltoij_m.f90 xyzinfo_m.obj newmpar_m.obj
-setxyz_m.obj : setxyz_m.f90 newmpar_m.obj indices_m.obj parm_m.obj precis_m.obj ind_m.obj xyzinfo_m.obj jimco_m.obj jimcc_m.obj 
-xyzinfo_m.obj : xyzinfo_m.f90 precis_m.obj
-newmpar_m.obj : newmpar_m.f90 
-precis_m.obj : precis_m.f90
-indices_m.obj : indices_m.f90
-parm_m.obj : parm_m.f90 precis_m.obj 
-ind_m.obj : ind_m.f90 newmpar_m.obj 
-jimcc_m.obj : jimcc_m.f90 parm_m.obj precis_m.obj 
-jimco_m.obj : jimco_m.f90 precis_m.obj jim_utils.obj nfft_m.obj 
-jim_utils.obj : jim_utils.f90 precis_m.obj 
-nfft_m.obj : nfft_m.f90 precis_m.obj 
+casafield.o : ccinterp.o
+casaread.o : ccinterp.o
+ccinterp.o : ccinterp.f90 setxyz_m.o xyzinfo_m.o latltoij_m.o newmpar_m.o
+latltoij_m.o : latltoij_m.f90 xyzinfo_m.o newmpar_m.o
+setxyz_m.o : setxyz_m.f90 newmpar_m.o indices_m.o parm_m.o precis_m.o ind_m.o xyzinfo_m.o jimco_m.o jimcc_m.o 
+xyzinfo_m.o : xyzinfo_m.f90 precis_m.o
+newmpar_m.o : newmpar_m.f90 
+precis_m.o : precis_m.f90
+indices_m.o : indices_m.f90
+parm_m.o : parm_m.f90 precis_m.o 
+ind_m.o : ind_m.f90 newmpar_m.o 
+jimcc_m.o : jimcc_m.f90 parm_m.o precis_m.o 
+jimco_m.o : jimco_m.f90 precis_m.o jim_utils.o nfft_m.o 
+jim_utils.o : jim_utils.f90 precis_m.o 
+nfft_m.o : nfft_m.f90 precis_m.o 

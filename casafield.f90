@@ -7,7 +7,7 @@ implicit none
 character*80, dimension(:,:), allocatable :: options
 integer nopts
 
-write(6,*) 'CASAFIELD - CASA fields to CC grid (APR-12)'
+write(6,*) 'CASAFIELD - CASA fields to CC grid (MAR-13)'
 
 ! Read switches
 nopts=3
@@ -98,7 +98,6 @@ character(len=*), dimension(nopts,2), intent(in) :: options
 character*80, dimension(3) :: outputdesc
 character*80 returnoption,outfile,infile,topofile
 character*45 header
-character*9 formout
 real, dimension(:,:,:), allocatable :: rlld,cfield
 real, dimension(:,:), allocatable :: gridout,lsdata,topdata
 real, dimension(2) :: lonlat
@@ -110,7 +109,7 @@ integer, dimension(4) :: dimnum,dimid,dimcount
 integer, dimension(0:4) :: ncidarr
 integer, dimension(6) :: adate
 integer, dimension(nfield) :: varid
-integer sibsize,tunit,i,j,k,ierr,ilout
+integer sibsize,tunit,i,j,k,ierr
 
 outfile=returnoption('-o',options,nopts)
 infile=returnoption('-i',options,nopts)
@@ -118,8 +117,7 @@ topofile=returnoption('-t',options,nopts)
 
 ! Read topography file
 tunit=1
-open(tunit,file=topofile,form='formatted',status='old',iostat=ierr)
-read(tunit,*,iostat=ierr) sibdim(1),sibdim(2),lonlat(1),lonlat(2),schmidt,dsx,header
+call readtopography(tunit,topofile,sibdim,lonlat,schmidt,dsx,header)
 
 write(6,*) "Dimension : ",sibdim
 write(6,*) "lon0,lat0 : ",lonlat
@@ -128,12 +126,8 @@ allocate(gridout(sibdim(1),sibdim(2)),rlld(sibdim(1),sibdim(2),2))
 allocate(topdata(sibdim(1),sibdim(2)))
 allocate(lsdata(sibdim(1),sibdim(2)),cfield(sibdim(1),sibdim(2),nfield))
 
-ilout=min(sibdim(1),30) ! To be compatiable with terread
-write(formout,'("(",i3,"f7.0)")',IOSTAT=ierr) ilout
-read(tunit,formout,iostat=ierr) topdata ! read topography
-write(formout,'("(",i3,"f4.1)")',IOSTAT=ierr) ilout
-read(tunit,formout,iostat=ierr) lsdata ! Read ls mask
-close(tunit)
+call gettopols(tunit,topofile,lsdata,sibdim)
+lsdata=1.-lsdata
 
 ! Determine lat/lon to CC mapping
 call ccgetgrid(rlld,gridout,sibdim,lonlat,schmidt,ds)
