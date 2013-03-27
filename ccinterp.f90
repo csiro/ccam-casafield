@@ -198,15 +198,9 @@ Implicit None
 
 Real, intent(in) :: aglon,aglat
 Real, intent(out) :: alci,alcj
-real(kind=rx) :: aglonb,aglatb
-real(kind=rx) :: alcib,alcjb
 Integer, intent(out) :: nface
 
-aglonb=aglon
-aglatb=aglat
-Call latltoij(aglonb,aglatb,alcib,alcjb,nface,rlong0,rlat0,schmidt,schm13)
-alci=alcib
-alcj=alcjb
+Call latltoij(aglon,aglat,alci,alcj,nface,rlong0,rlat0,schmidt,schm13)
 
 Return
 End subroutine lltoijmod

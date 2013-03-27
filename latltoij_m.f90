@@ -13,8 +13,8 @@ contains
       use precis_m, only : rx
       implicit none
 
-      real(kind=rx), intent(in) :: rlongin, rlatin
-      real(kind=rx), intent(out) :: xout, yout
+      real, intent(in) :: rlongin, rlatin
+      real, intent(out) :: xout, yout
       integer, intent(out) :: nf
       real(kind=rx), intent(in) :: rlong0, rlat0, schmidt, schm13
       integer, parameter :: diag=0
