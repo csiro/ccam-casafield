@@ -596,6 +596,7 @@ integer, dimension(2), intent(out) :: pxy
 integer, dimension(2), intent(in) :: ecodim
 integer, intent(in) ::i,j
 integer nn,nxa,nxb,nya,nyb
+integer nxc,nxd
 real, dimension(ecodim(1),ecodim(2),2), intent(in) :: rlld
 Real, dimension(ecodim(1),ecodim(2)) :: dismsk
 logical, dimension(ecodim(1),ecodim(2)), intent(in) :: sermsk
@@ -604,21 +605,30 @@ logical, dimension(ecodim(1),ecodim(2)) :: xmsk
 nn=1
 nxa=i
 nxb=i
+nxc=i
+nxd=i
 nya=j
 nyb=j
-do while (.not.any(sermsk(nxa:nxb,nya:nyb)))
+do while (.not.(any(sermsk(nxa:nxb,nya:nyb)).or.any(sermsk(nxc:nxd,nya:nyb))))
   nn=nn*2
   nxa=max(i-nn,1)
   nxb=min(i+nn,ecodim(1))
+  nxc=min(i-nn+ecodim(1),ecodim(1))
+  nxd=max(i+nn-ecodim(1),1)
   nya=max(j-nn,1)
   nyb=min(j+nn,ecodim(2))
 end do
 xmsk=.false.
 xmsk(nxa:nxb,nya:nyb)=sermsk(nxa:nxb,nya:nyb)
+if (nxc<nxd) then
+  xmsk(nxc:nxd,nya:nyb)=xmsk(nxc:nxd,nya:nyb).or.sermsk(nxc:nxd,nya:nyb)
+  nxa=min(nxa,nxc)
+  nxb=max(nxb,nxd)
+end if
 where(xmsk(nxa:nxb,nya:nyb))
   dismsk(nxa:nxb,nya:nyb)=abs(rlld(i,j,1)-rlld(nxa:nxb,nya:nyb,1))
 end where
-where ((dismsk(nxa:nxb,nya:nyb).GT.180.).and.xmsk(nxa:nxb,nya:nyb))
+where ((dismsk(nxa:nxb,nya:nyb)>180.).and.xmsk(nxa:nxb,nya:nyb))
   dismsk(nxa:nxb,nya:nyb)=abs(360.-dismsk(nxa:nxb,nya:nyb))
 end where
 where (xmsk(nxa:nxb,nya:nyb))

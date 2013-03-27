@@ -5,10 +5,11 @@
 Module ccinterp
 
 Use parm_m, only : rlong0, rlat0, schmidt
+use precis_m, only : rx
 
 Private
 
-Real, parameter :: schm13 = 0.1
+Real(kind=rx), parameter :: schm13 = 0.1
 
 Public ccgetgrid, lltoijmod, getcc, cgg2
 
@@ -33,7 +34,7 @@ Real, dimension(1:2), intent(in) :: lonlat
 Real, intent(in) :: schmidtin
 Real, intent(out) :: dst
 Real, parameter :: pi = 3.1415926536
-Real, parameter :: erad = 6.37122e6
+Real(kind=rx), parameter :: erad = 6.37122e6
 Integer i,j,n
 Integer, parameter :: diag = 0
 Integer, parameter :: id = 13
@@ -84,7 +85,7 @@ Real, dimension(1:2), intent(in) :: lonlat
 Real, intent(in) :: schmidtin
 Real, intent(out) :: dst
 Real, parameter :: pi = 3.1415926536
-Real, parameter :: erad = 6.37122e6
+Real(kind=rx), parameter :: erad = 6.37122e6
 Integer i,j,n
 Integer, parameter :: diag = 0
 Integer, parameter :: id = 13
@@ -144,7 +145,7 @@ Real, dimension(1:2), intent(in) :: lonlat
 Real, intent(in) :: schmidtin
 Real, intent(out) :: dst
 Real, parameter :: pi = 3.1415926536
-Real, parameter :: erad = 6.37122e6
+Real(kind=rx), parameter :: erad = 6.37122e6
 integer, dimension(1:ecodim(1),1:ecodim(2)), intent(out) :: in,ie,is,iw
 Integer i,j,n
 Integer, parameter :: diag = 0
@@ -197,9 +198,15 @@ Implicit None
 
 Real, intent(in) :: aglon,aglat
 Real, intent(out) :: alci,alcj
+real(kind=rx) :: aglonb,aglatb
+real(kind=rx) :: alcib,alcjb
 Integer, intent(out) :: nface
 
-Call latltoij(aglon,aglat,alci,alcj,nface,rlong0,rlat0,schmidt,schm13)
+aglonb=aglon
+aglatb=aglat
+Call latltoij(aglonb,aglatb,alcib,alcjb,nface,rlong0,rlat0,schmidt,schm13)
+alci=alcib
+alcj=alcjb
 
 Return
 End subroutine lltoijmod

@@ -10,31 +10,32 @@ contains
 
       use newmpar_m
       use xyzinfo_m, only : xx4, yy4
+      use precis_m, only : rx
       implicit none
 
-      real, intent(in) :: rlongin, rlatin
-      real, intent(out) :: xout, yout
+      real(kind=rx), intent(in) :: rlongin, rlatin
+      real(kind=rx), intent(out) :: xout, yout
       integer, intent(out) :: nf
-      real, intent(in) :: rlong0, rlat0, schmidt, schm13
+      real(kind=rx), intent(in) :: rlong0, rlat0, schmidt, schm13
       integer, parameter :: diag=0
 
-      real, save, dimension(3,3) :: rotpolei
+      real(kind=rx), save, dimension(3,3) :: rotpolei
 
 !     following used by npanels=13
       integer, parameter, dimension(-1:1,-1:4) :: npanetab =                 &
         reshape ( (/ 9,12,13, 7,2,1, 6,4,3, 6,5,3, 8,10,0, 9,11,13 /),       &
                   (/ 3, 6 /) )
-      real, parameter, dimension(-1:1,-1:4) :: acon =                        &
+      real(kind=rx), parameter, dimension(-1:1,-1:4) :: acon =                        &
         reshape ( (/ 0,1,1, -1,0,0, -1,0,0, 0,0,-1, 1,1,0, 1,1,0 /),         &
                   (/ 3, 6 /) )
-      real, parameter, dimension(-1:1,-1:4) :: bcon =                        &
+      real(kind=rx), parameter, dimension(-1:1,-1:4) :: bcon =                        &
         reshape ( (/ 1,0,0, 0,-1,-1, 0,-1,-1, -1,-1,0, 0,0,1, 0,0,1 /),      &
                   (/ 3, 6 /) )
-      real, parameter, dimension(-1:1,-1:4) :: xadd =                        &
+      real(kind=rx), parameter, dimension(-1:1,-1:4) :: xadd =                        &
         reshape ( (/ -0.5, 0.5, -0.5,   -0.5, 0.5, 0.5,    -0.5,-0.5,-0.5,   &
                      -1.5,-1.5, 1.5,    1.5, 0.5, 3.5,      1.5, 0.5, 4.5 /),&
                   (/ 3, 6 /) )
-      real, parameter, dimension(-1:1,-1:4) :: yadd =                        &
+      real(kind=rx), parameter, dimension(-1:1,-1:4) :: yadd =                        &
         reshape ( (/ 1.5, 1.5, 1.5,   0.5, 0.5, 1.5,    1.5, 0.5, 1.5,       &
                     -0.5, 0.5, 2.5,  -2.5,-2.5,-0.5,   -3.5,-3.5,-0.5 /),    &
                   (/ 3, 6 /) )
@@ -53,17 +54,17 @@ contains
 !               1.5   1.5   1.5     2.5  -0.5  -0.5
 
       integer, save :: num = 0
-      real, save :: alf, schmidtp, alfp, schmidtm, alfm
+      real(kind=rx), save :: alf, schmidtp, alfp, schmidtm, alfm
       integer, parameter :: nmaploop = 3,  numtst= 1063
-      real, parameter :: pi = 3.1415926536 
-      real :: coslong, sinlong, coslat, sinlat
-      real :: xa, ya, za, x, y, z, x1, y1, z1, denxyz, xx, yy, zz
-      real :: xgrid, ygrid
-      real :: ri, rj, dxx, dyx, dxy, dyy, den, xsign, ysign, zsign
-      real :: xstr, ystr, xgr, ygr 
+      real(kind=rx), parameter :: pi = 3.1415926536 
+      real(kind=rx) :: coslong, sinlong, coslat, sinlat
+      real(kind=rx) :: xa, ya, za, x, y, z, x1, y1, z1, denxyz, xx, yy, zz
+      real(kind=rx) :: xgrid, ygrid
+      real(kind=rx) :: ri, rj, dxx, dyx, dxy, dyy, den, xsign, ysign, zsign
+      real(kind=rx) :: xstr, ystr, xgr, ygr 
       integer :: i, j, ibox, jbox, loop, ig, jg, is, js
-      real, save :: rmax
-      real, dimension(3) :: vec
+      real(kind=rx), save :: rmax
+      real(kind=rx), dimension(3) :: vec
 
 
       if ( num == 0 ) then
@@ -189,6 +190,11 @@ contains
           den = dxx*dyy-dyx*dxy
           ri = ig+is*((xgrid-xx4(ig,jg))*dyy-(ygrid-yy4(ig,jg))*dyx)/den
           rj = jg+js*((ygrid-yy4(ig,jg))*dxx-(xgrid-xx4(ig,jg))*dxy)/den
+          
+          ri = min(ri,1.0+1.99999*2*il)
+          ri = max(ri,1.0+0.00001*2*il)
+          rj = min(rj,1.0+1.99999*2*il)
+          rj = max(rj,1.0+0.00001*2*il)
        enddo! loop loop
        xout = 0.25*(ri+3.0) - 0.5  ! -.5 for stag; back to normal ri, rj defn
        yout = 0.25*(rj+3.0) - 0.5  ! -.5 for stag
