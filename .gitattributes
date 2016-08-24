@@ -12,10 +12,13 @@
 /misc.f90 -text
 /ncread.f90 -text
 /ncwrite.f90 -text
+/netcdf_m.f90 -text
 /newmpar_m.f90 -text
 /nfft_m.f90 -text
 /parm_m.f90 -text
 /precis_m.f90 -text
 /readswitch.f90 -text
 /setxyz_m.f90 -text
+/stacklimit.c -text
+/version.h -text
 /xyzinfo_m.f90 -text
