@@ -1,13 +1,50 @@
+! Conformal Cubic Atmospheric Model
+    
+! Copyright 2016 Commonwealth Scientific Industrial Research Organisation (CSIRO)
+    
+! This file is part of the Conformal Cubic Atmospheric Model (CCAM)
+!
+! CCAM is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! CCAM is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with CCAM.  If not, see <http://www.gnu.org/licenses/>.
+
+!------------------------------------------------------------------------------
+
+
 program casafield
 
 ! This code maps CASA field data to conformal cubic coordinates
 
 implicit none
 
+include 'version.h'
+
 character*80, dimension(:,:), allocatable :: options
 integer nopts
 
-write(6,*) 'CASAFIELD - CASA fields to CC grid (MAR-13)'
+! Start banner
+write(6,*) "=============================================================================="
+write(6,*) "CCAM: Starting casafield"
+write(6,*) "=============================================================================="
+
+
+#ifndef stacklimit
+! For linux only - removes stacklimit on all processors
+call setstacklimit(-1)
+#endif 
+
+
+write(6,*) 'CASAFIELD - CASA fields to CC grid'
+write(6,*) version
 
 ! Read switches
 nopts=3
@@ -22,7 +59,23 @@ call createcasa(options,nopts)
 
 deallocate(options)
 
+! Complete
+write(6,*) "CCAM: casafield completed successfully"
+call finishbanner
+
 stop
+end
+
+subroutine finishbanner
+
+implicit none
+
+! End banner
+write(6,*) "=============================================================================="
+write(6,*) "CCAM: Finished casafield"
+write(6,*) "=============================================================================="
+
+return
 end
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -42,6 +95,8 @@ write(6,*) "  -t topoin    CCAM topography file"
 write(6,*) "  -i casain    CASA field input dataset"
 write(6,*) "  -o casaout   CASA field output filename"
 write(6,*)
+
+call finishbanner
 stop
 
 return

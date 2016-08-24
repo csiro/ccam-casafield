@@ -1,3 +1,24 @@
+! Conformal Cubic Atmospheric Model
+    
+! Copyright 2015 Commonwealth Scientific Industrial Research Organisation (CSIRO)
+    
+! This file is part of the Conformal Cubic Atmospheric Model (CCAM)
+!
+! CCAM is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! CCAM is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with CCAM.  If not, see <http://www.gnu.org/licenses/>.
+
+!------------------------------------------------------------------------------
+    
 !
 ! THESE SUBROUTINES READ DATA IN NETCDF FORMAT
 !
@@ -9,9 +30,9 @@
 
 Subroutine getncdims(ncid,ncdim)
 
-Implicit None
+use netcdf_m
 
-Include "netcdf.inc"
+Implicit None
 
 Integer, intent(in) :: ncid
 Integer, dimension(4), intent(out) :: ncdim
@@ -19,7 +40,10 @@ Character*80 outname
 Character*4, dimension(4) :: varnamelist
 Integer ncstatus,i
 
-varnamelist(:)=(/ "lon", "lat", "lev", "time" /)
+varnamelist(1)="lon"
+varnamelist(2)="lat"
+varnamelist(3)="lev"
+varnamelist(4)="time"
 Do i=1,4
   Call ncfinddimlen(ncid,varnamelist(i),outname,ncdim(i))
 Enddo
@@ -34,9 +58,9 @@ End
 
 Subroutine getncdata(ncid,varname,datalab,dataval)
 
-Implicit None
+use netcdf_m
 
-Include "netcdf.inc"
+Implicit None
 
 Integer, intent(in) :: ncid
 Character(len=*), intent(in) :: varname,datalab
@@ -48,13 +72,13 @@ dataval=''
 
 Call ncfindvarid(ncid,varname,outname,varid)
 If (outname.EQ.'') Then
-  Write(6,*) "WARN: Cannot determine variable id ",trim(varname)," (",ncstatus,")"
+  !Write(6,*) "WARN: Cannot determine variable id ",trim(varname)," (",ncstatus,")"
   return
 End If
 
 ncstatus = nf_get_att_text(ncid,varid,datalab,dataval)
 If (ncstatus.NE.nf_noerr) Then
-  Write(6,*) "WARN: Error reading attribute ",trim(datalab)," (",ncstatus,")"
+  !Write(6,*) "WARN: Cannot read attribute ",trim(datalab)," (",ncstatus,")"
   return
 End If
 
@@ -69,23 +93,26 @@ End
 
 Subroutine ncgetnumval(ncid,varname,datalab,dataval,ncstatus)
 
-Implicit None
+use netcdf_m
 
-Include "netcdf.inc"
+Implicit None
 
 Integer, intent(in) :: ncid
 Integer, intent(out) :: ncstatus
 Character(len=*), intent(in) :: varname,datalab
 Real, intent(out) :: dataval
+real, dimension(1) :: rvals
 Character*80 outname
 Integer varid
 
 dataval=0.
 Call ncfindvarid(ncid,varname,outname,varid)
-ncstatus = nf_get_att_real(ncid,varid,datalab,dataval)
+ncstatus = nf_get_att_real(ncid,varid,datalab,rvals(1))
+dataval=rvals(1)
 
 Return
 End
+    
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! This subroutine stores (nc) dates in an array
 !
@@ -147,19 +174,22 @@ Select Case(mthlab)
 End Select
 
 If (datearray(2).EQ.-1) then
-  Read(timedate,'(I4.4,A1,I2.2,A1,I2.2,A1,I2.2,A1,I2.2,A1,I2.2)',iostat=ierr) datearray(1),tmp1,datearray(2),tmp2,datearray(3),tmp3,datearray(4),tmp4,datearray(5),tmp5,datearray(6)
+  Read(timedate,'(I4.4,A1,I2.2,A1,I2.2,A1,I2.2,A1,I2.2,A1,I2.2)',iostat=ierr) datearray(1),tmp1,datearray(2),tmp2,datearray(3), &
+      tmp3,datearray(4),tmp4,datearray(5),tmp5,datearray(6)
   if (ierr.ne.0) then
     Read(timedate,'(I4.4,A1,I1.1,A1,I1.1)',iostat=ierr) datearray(1),tmp1,datearray(2),tmp2,datearray(3)
     datearray(4:6)=0
   end if
 Else  
-  Read(timedate,'(I2.2,A5,I4.4,A1,I2.2,A1,I2.2,A1,I2.2,A1,I2.2)',iostat=ierr) datearray(3),tmp6,datearray(1),tmp3,datearray(4),tmp4,datearray(5),tmp5,datearray(6)  
+  Read(timedate,'(I2.2,A5,I4.4,A1,I2.2,A1,I2.2,A1,I2.2,A1,I2.2)',iostat=ierr) datearray(3),tmp6,datearray(1),tmp3,datearray(4), &
+      tmp4,datearray(5),tmp5,datearray(6)  
 End If
 
 if (ierr.ne.0) then
   Write(6,*) "ERROR: Cannot read nc date."
   Write(6,*) "       Please contact MJT and get him to fix this."
-  Stop
+  call finishbanner
+  Stop -1
 end if
 
 Return
@@ -173,9 +203,9 @@ End
 
 Subroutine getncarray(ncid,varname,arrsize,arrdata)
 
-Implicit None
+use netcdf_m
 
-Include "netcdf.inc"
+Implicit None
 
 Integer, intent(in) :: ncid
 Integer, dimension(1:4,1:2), intent(in) :: arrsize
@@ -186,6 +216,7 @@ Integer, dimension(1:maxdim) :: aid,dumcount,duminx
 Integer, dimension(0:maxdim) :: ii,ij
 Real, dimension(1:arrsize(1,2),1:arrsize(2,2),1:arrsize(3,2),1:arrsize(4,2)), intent(out) :: arrdata
 Real, dimension(:,:,:,:), allocatable :: dumarr
+real, dimension(1) :: rvals
 Real scale,offset
 Character(len=*), intent(in) :: varname
 
@@ -194,13 +225,15 @@ Character*80 outname
 Call ncfindvarid(ncid,varname,outname,varid)
 If (outname.EQ.'') Then
   Write(6,*) "ERROR: Cannot determine var id ",trim(varname)," (",ncstatus,")"
-  Stop
+  call finishbanner
+  Stop -1
 End If
 
 ncstatus = nf_inq_varndims(ncid,varid,ndims)
 If (ncstatus.NE.nf_noerr) Then
   Write(6,*) "ERROR: Cannot determine var dims ",trim(varname)," (",ncstatus,")"
-  Stop
+  call finishbanner
+  Stop -1
 End If
 
 If (ndims.GT.maxdim) Then
@@ -214,7 +247,8 @@ Allocate(cid(1:ndims))
 ncstatus=nf_inq_vardimid(ncid,varid,cid)
 If (ncstatus.NE.nf_noerr) Then
   Write(6,*) "ERROR: Cannot determine var dimid ",trim(varname)," (",ncstatus,")"
-  Stop
+  call finishbanner
+  Stop -1
 End If
 
 ! Determine lon, lat, level and time index
@@ -232,7 +266,7 @@ Do i=1,ndims
   tinx=Maxloc(aid,aid.EQ.cid(i))
   inx(i)=tinx(1)
   If ((inx(i).LT.1).OR.(inx(i).GT.maxdim)) Then
-    Write(6,*) "WARN: Non-standard dimension found in ",trim(varname)
+    Write(6,*) "Non-standard dimension found in ",trim(varname)
     startpos(i)=1
     npos(i)=1
     inx(i)=0 ! ii(0) and ij(0) are set to 1.
@@ -243,7 +277,8 @@ Do i=1,ndims
     If (dumnum.GT.maxdim) Then
       Write(6,*) "ERROR: Internal error in getncarray.  dumnum > maxdim."
       Write(6,*) "       Please contact MJT and get him to fix this."
-      Stop
+      call finishbanner
+      Stop -1
     End If
     dumcount(dumnum)=npos(i)
     duminx(dumnum)=inx(i)
@@ -258,7 +293,8 @@ Allocate(dumarr(1:dumcount(1),1:dumcount(2),1:dumcount(3),1:dumcount(4)))
 ncstatus = nf_get_vara_real(ncid,varid,startpos,npos,dumarr)
 If (ncstatus.NE.nf_noerr) Then
   Write(6,*) "ERROR: Cannot read var ",trim(varname)," data (",ncstatus,")"
-  Stop
+  call finishbanner
+  Stop -1
 End If
 
 
@@ -284,14 +320,18 @@ End Do
 
 Deallocate(startpos,npos,cid,dumarr,inx)
 
-ncstatus = nf_get_att_real(ncid,varid,'scale_factor',scale)
+ncstatus = nf_get_att_real(ncid,varid,'scale_factor',rvals(1))
 If (ncstatus.NE.nf_noerr) Then
   scale=1.
+else
+  scale=rvals(1)
 End If
 
-ncstatus = nf_get_att_real(ncid,varid,'add_offset',offset)
+ncstatus = nf_get_att_real(ncid,varid,'add_offset',rvals(1))
 If (ncstatus.NE.nf_noerr) Then
   offset=0.
+else
+  offset=rvals(1)
 End If
 
 arrdata=scale*arrdata+offset
@@ -361,7 +401,7 @@ If ((vi(1).LT.1).OR.(vi(1).GT.valnum)) then
   vi=minloc(vallab,vallab.GE.rval)
 End If
 If (vallab(vi(1)).NE.rval) Then
-  Write(6,*) "WARN: Replace ",trim(valname)," ",rval," with ",vallab(vi(1))
+  Write(6,*) "Replace ",trim(valname)," ",rval," with ",vallab(vi(1))
 End If
 
 valindex=vi(1)
@@ -377,9 +417,9 @@ End
 
 Subroutine ncfinddimlen(ncid,valname,outname,valnum)
 
-Implicit none
+use netcdf_m
 
-Include "netcdf.inc"
+Implicit none
 
 Integer, intent(in) :: ncid
 Character(len=*), intent(in) :: valname
@@ -388,17 +428,18 @@ Integer, intent(out) :: valnum
 Integer ncstatus,valident
 
 Call ncfinddimid(ncid,valname,outname,valident)
-If (outname.EQ.'') Then
-  Write(6,*) "WARN: Cannot find dimension ",trim(valname)
+If (outname=='') Then
+  !Write(6,*) "WARN: Cannot find dimension ",trim(valname)
   valnum=1
   Return
 End If
 
 ! Find number of elements
 ncstatus = nf_inq_dimlen(ncid,valident,valnum)
-If (ncstatus.NE.nf_noerr) Then
-  Write(6,*) "ERROR: Cannot determine ",trim(valname)," len (",ncstatus,")"
-  Stop
+If (ncstatus/=nf_noerr) Then
+  Write(6,*) "ERROR: Cannot determine length of ",trim(valname)," (",ncstatus,")"
+  call finishbanner
+  Stop -1
 End If
 
 Return
@@ -441,22 +482,26 @@ End
 
 Subroutine getncval(ncid,outname,vallab,valnum)
 
-Implicit None
+use netcdf_m
 
-Include "netcdf.inc"
+Implicit None
 
 Integer, intent(in) :: ncid,valnum
 Character(len=*), intent(in) :: outname
 Real, dimension(1:valnum), intent(out) :: vallab
 Character*80 actname
 Integer ncstatus,valident
+integer, dimension(1) :: nstart,ncount
 
 Call ncfindvarid(ncid,outname,actname,valident)
 
-ncstatus = nf_get_vara_real(ncid,valident,1,valnum,vallab)
-If (ncstatus.NE.nf_noerr) Then
+nstart=1
+ncount=valnum
+ncstatus = nf_get_vara_real(ncid,valident,nstart,ncount,vallab)
+If (ncstatus/=nf_noerr) Then
   Write(6,*) "ERROR: Cannot read ",trim(outname)," data (",ncstatus,")"
-  Stop
+  call finishbanner
+  Stop -1
 End If
 
 Return
@@ -495,9 +540,9 @@ End
 
 Subroutine ncfindvarid(ncid,valname,outname,valident)
 
-Implicit none
+use netcdf_m
 
-Include "netcdf.inc"
+Implicit none
 
 Integer, intent(in) :: ncid
 Character(len=*), intent(in) :: valname
@@ -509,20 +554,41 @@ Character*80, dimension(1:maxlist,1:maxname) :: varnamelist
 Integer ncstatus,ierr,i,j
 
 varnamelist(:,:)=""
-varnamelist(1,1:3) =(/ 'u',     'U',        'zonal_wnd'          /)
-varnamelist(2,1:3) =(/ 'v',     'V',        'merid_wnd'          /)
-varnamelist(3,1:2) =(/ 'omega', 'W'                              /)
-varnamelist(4,1:3) =(/ 'temp',  'TA',       'air_temp'           /)
-varnamelist(5,1:4) =(/ 'mixr',  'H',        'rh',      'mix_rto' /)
-varnamelist(6,1:3) =(/ 'zs',    'TOPO',     'topo'               /)
-varnamelist(7,1:2) =(/ 'pblh',  'ZI'                             /)
-varnamelist(8,1:2) =(/ 'fg',    'HFLX'                           /)
-varnamelist(9,1:2) =(/ 'zolnd', 'ZRUF'                           /)
-varnamelist(10,1:2)=(/ 'alb',  'ALBEDO'                          /)
-varnamelist(11,1:2)=(/ 'pmsl', 'mslp'                            /)
-varnamelist(12,1:3)=(/ 'tss',  'sfc_temp', 'tsu'                 /)
-varnamelist(13,1:2)=(/ 'ps',   'sfc_pres'                        /)
-varnamelist(14,1:2)=(/ 'hgt',  'zht'                             /)
+varnamelist(1,1)='u'
+varnamelist(1,2)='U'
+varnamelist(1,3)='zonal_wnd'
+varnamelist(2,1)='v'
+varnamelist(2,2)='V'
+varnamelist(2,3)='merid_wnd'
+varnamelist(3,1)='omega'
+varnamelist(3,2)='W'
+varnamelist(4,1)='temp'
+varnamelist(4,2)='TA'
+varnamelist(4,3)='air_temp'
+varnamelist(5,1)='mixr'
+varnamelist(5,2)='H'
+varnamelist(5,3)='rh'
+varnamelist(5,4)='mix_rto'
+varnamelist(6,1)='zs'
+varnamelist(6,2)='TOPO'
+varnamelist(6,3)='topo'
+varnamelist(7,1)='pblh'
+varnamelist(7,2)='ZI'
+varnamelist(8,1)='fg'
+varnamelist(8,2)='HFLX'
+varnamelist(9,1)='zolnd'
+varnamelist(9,2)='ZRUF'
+varnamelist(10,1)='alb'
+varnamelist(10,2)='ALBEDO'
+varnamelist(11,1)='pmsl'
+varnamelist(11,2)='mslp'
+varnamelist(12,1)='tss'
+varnamelist(12,2)='sfc_temp'
+varnamelist(12,3)='tsu'
+varnamelist(13,1)='ps'
+varnamelist(13,2)='sfc_pres'
+varnamelist(14,1)='hgt'
+varnamelist(14,2)='zht'
 
 outname=""
 
@@ -536,7 +602,8 @@ Else
     ncstatus = nf_inq_varid(ncid,outname,valident)
     If (ncstatus.NE.nf_noerr) Then
       Write(6,*) "ERROR: Cannot read id for ",trim(outname)
-      Stop
+      call finishbanner
+      Stop -1
     End If
   Else
 
@@ -594,9 +661,9 @@ End
 
 Subroutine ncfinddimid(ncid,valname,outname,valident)
 
-Implicit none
+use netcdf_m
 
-Include "netcdf.inc"
+Implicit none
 
 Integer, intent(in) :: ncid
 Character(len=*), intent(in) :: valname
@@ -607,14 +674,19 @@ Character*80, dimension(1:4,1:maxname) :: varnamelist
 Integer ncstatus,ierr,i,j
 
 varnamelist(:,:)=""
-varnamelist(:,1)=(/ "lon", "lat", "lev", "time" /)
-varnamelist(:,2)=(/ "longitude", "latitude", "level", "" /)
-varnamelist(:,3)=(/ "", "", "pres", "" /)
-varnamelist(:,4)=(/ "", "", "lvl", "" /)
-varnamelist(:,5)=(/ "", "", "sigma_level", "" /)
+varnamelist(1,1)="lon"
+varnamelist(2,1)="lat"
+varnamelist(3,1)="lev"
+varnamelist(4,1)="time"
+varnamelist(1,2)="longitude"
+varnamelist(2,2)="latitude"
+varnamelist(3,2)="level"
+varnamelist(3,3)="pres"
+varnamelist(3,4)="lvl"
+varnamelist(3,5)="sigma_level"
 
 ncstatus = nf_inq_dimid(ncid,valname,valident)
-If (ncstatus.EQ.nf_noerr) Then
+If (ncstatus==nf_noerr) Then
   outname=valname
   Return
 End if
@@ -625,18 +697,18 @@ i=1
 j=1
 ierr=1
 Do While (ierr.NE.0)
-  If (valname.EQ.varnamelist(i,j)) Then
+  If (valname==varnamelist(i,j)) Then
     ierr=0
   Else
     i=i+1
   End If
   
-  If (i.EQ.5) Then
+  If (i==5) Then
     i=1
     j=j+1
   End If
   
-  If (j.GT.maxname) Then
+  If (j>maxname) Then
     outname=''
     valident=-1
     Return
@@ -644,20 +716,19 @@ Do While (ierr.NE.0)
 
 End Do
 
-
 j=1
 ierr=1
-Do While (ierr.NE.0)
+Do While (ierr/=0)
 
   ncstatus = nf_inq_dimid(ncid,trim(varnamelist(i,j)),valident)
-  If (ncstatus.EQ.nf_noerr) Then
+  If (ncstatus==nf_noerr) Then
     ierr=0
     outname=varnamelist(i,j)
   Else
     j=j+1
   End If
   
-  If (j.GT.maxname) Then
+  If (j>maxname) Then
     ierr=0
     outname=''
     valident=-1
@@ -689,7 +760,8 @@ Real x,holdlvl
 Call getncdims(ncid,ncdim)
 If (lvlnum.NE.ncdim(3)) Then
   Write(6,*) 'ERROR: Internal error in nccallvlheight'
-  Stop
+  call finishbanner
+  Stop -1
 End If
 
 ! Define height array
@@ -703,7 +775,7 @@ Do it=2,ncdim(4)
     itop=Maxloc(arrdata(1,1,:))
     ibot=Minloc(arrdata(1,1,:))
     outlvl(ibot)=0.
-    outlvl(itop)=9999999999
+    outlvl(itop)=9999999
   End If
    
   ! Calculate average levels
@@ -722,7 +794,7 @@ Deallocate(arrdata)
 ! Round levels
 Do i=1,ncdim(3)
   holdlvl=outlvl(i)
-  x=Int(Log10(outlvl(i))-1.)
+  x=Int(Log10(outlvl(i))-2.)
   If (x.LT.0.) x=0.
   x=10**x
   outlvl(i)=Nint(outlvl(i)/x)*x
@@ -779,11 +851,11 @@ If (valid.NE.-1) Then
   
   Call ncgetnumval(ncid,'tscrn','add_offset',offset,ncstatus)
   If (tempdata(1,1,0,1).EQ.offset) Then
-    Write(6,*) "WARN: tscrn is not defined at time step ",it   
+    Write(6,*) "tscrn is not defined at time step ",it   
     tempdata(:,:,0,:)=tempdata(:,:,1,:)
   End If
 Else
-  Write(6,*) "WARN: tscrn is not defined in nc file"
+  Write(6,*) "tscrn is not defined in nc file"
   tempdata(:,:,0,:)=tempdata(:,:,1,:)
 End If
 
@@ -796,11 +868,11 @@ If (valid.NE.-1) Then
   
   Call ncgetnumval(ncid,'qgscrn','add_offset',offset,ncstatus)
   If (tempdata(1,1,0,1).EQ.offset) Then
-    Write(6,*) "WARN: qgscrn is not defined at time step ",it   
+    Write(6,*) "qgscrn is not defined at time step ",it   
     mixrdata(:,:,0,:)=mixrdata(:,:,1,:)
   End If
 Else
-  Write(6,*) "WARN: qgscrn is not defined in nc file"
+  Write(6,*) "qgscrn is not defined in nc file"
   mixrdata(:,:,0,:)=mixrdata(:,:,1,:)
 End If
 
@@ -851,7 +923,8 @@ If (utype.NE.otype) Then
       Case DEFAULT
       Write(6,*) "ERROR: Cannot convert from unit ",trim(utype)
       Write(6,*) "       Please contact MJT and get him to fix this."
-      Stop
+      call finishbanner
+      Stop -1
       
   End Select
 
@@ -863,7 +936,8 @@ If (utype.NE.otype) Then
     Case DEFAULT
       Write(6,*) "ERROR: Cannot convert to unit ",trim(otype)
       Write(6,*) "       Please contact MJT and get him to fix this."
-      Stop
+      call finishbanner
+      Stop -1
   
   End Select
 
@@ -926,13 +1000,15 @@ If (utype.NE.otype) Then
       dotpresdata=dotpresdata/864. ! Convert to Pa/s
       Call getncval(ncid,'lev',sigmalvl,arrsize(3,2))
       Do k=1,arrsize(3,2)
-	    arrdata(:,:,k,:)=(arrdata(:,:,k,:)-sigmalvl(k)*dotpresdata(:,:,1,:))*(-287./9.81)*tempdata(:,:,k,:)/(sigmalvl(k)*presdata(:,:,1,:))
+	    arrdata(:,:,k,:)=(arrdata(:,:,k,:)-sigmalvl(k)*dotpresdata(:,:,1,:))*(-287./9.81)*tempdata(:,:,k,:) &
+            /(sigmalvl(k)*presdata(:,:,1,:))
       End Do
   
     Case DEFAULT
       Write(6,*) "ERROR: Cannot convert from velocity unit ",trim(utype)
       Write(6,*) "       Please contact MJT and get him to fix this"
-      Stop
+      call finishbanner
+      Stop -1
   
   End Select
   
@@ -944,7 +1020,8 @@ If (utype.NE.otype) Then
     Case DEFAULT
       Write(6,*) "ERROR: Cannot convert to velocity unit ",trim(otype)
       Write(6,*) "       Please contact MJT and get him to fix this"
-      Stop
+      call finishbanner
+      Stop -1
   
   End Select
 End If
@@ -1001,9 +1078,9 @@ Select Case(varname(1))
       Call ncfindvarid(ncid,'zs',outname,valid)
       If (outname.NE.'') then
         If (arrsize(3,2).EQ.1) Then
-	  Write(6,*) "WARN: Using topography to calculate surface"
-	  Write(6,*) "      geopotential height."
-	  chartemp=(/ outname, 'm' /)
+	  Write(6,*) "Using topography to calculate surface geopotential height."
+	  chartemp(1)=outname
+      chartemp(2)='m'
 	  call getncarray(ncid,outname,arrsize,arrdata)
 	  arrdata=arrdata*9.80616
 	  inunit='m2/s2'
@@ -1011,12 +1088,14 @@ Select Case(varname(1))
         Else
           Write(6,*) "ERROR: Surface geopotential height requested"
           Write(6,*) "       at multiple levels."
-          Stop
+          call finishbanner
+          Stop -1
 	End if
       Else
         Write(6,*) "ERROR: Cannot find surface geopotential height"
-	Write(6,*) "       or topography in input file."
-	Stop
+        Write(6,*) "       or topography in input file."
+        call finishbanner
+        Stop -1
       End if
     End if
     
@@ -1024,7 +1103,8 @@ Select Case(varname(1))
     Call ncfindvarid(ncid,varname(1),outname,valid)
     If (outname.EQ.'') Then
       Write(6,*) "ERROR: Cannot locate "//trim(varname(1))//" in nc file."
-      Stop
+      call finishbanner
+      Stop -1
     End if
     If (outname.NE.varname(1)) Write(6,*) "Located "//trim(varname(1))//" as "//trim(outname)
     Call getncarray(ncid,outname,arrsize,arrdata)
@@ -1036,12 +1116,12 @@ End Select
 !*******************************************************************
 ! Special cases (to handle bugs....)
 If ((outname.EQ.'topo').AND.(inunit.EQ.'degrees_east')) then
-  Write(6,*) "WARN: Replace topo unit degrees_east with m."
+  Write(6,*) "Replace topo unit degrees_east with m."
   inunit='m'
 End if
     
 If ((outname.EQ.'hgt').AND.(inunit.EQ.'m')) then
-  Write(6,*) "WARN: Replace hgt unit m with gpm."    
+  Write(6,*) "Replace hgt unit m with gpm."    
   inunit='gpm'
 End if
 !*******************************************************************
@@ -1114,9 +1194,9 @@ End
 
 Subroutine readtopography(topounit,toponame,ecodim,lonlat,schmidt,dsx,header)
 
-Implicit None
+use netcdf_m
 
-include 'netcdf.inc'
+Implicit None
 
 Integer, intent(in) :: topounit
 Integer, dimension(2), intent(out) :: ecodim
@@ -1125,24 +1205,29 @@ Character(len=*), intent(in) :: toponame
 Character*47, intent(out) :: header
 Real, dimension(1:2), intent(out) :: lonlat
 Real, intent(out) :: schmidt,dsx
+real, dimension(1) :: rvals
 
 ierr=nf_open(toponame,nf_nowrite,ncid)
-if (ierr==0) then
+if (ierr==nf_noerr) then
   ierr=nf_get_att_real(ncid,nf_global,'lon0',lonlat(1))
-  if (ierr/=0) then
+  if (ierr/=nf_noerr) then
     write(6,*) "ERROR reading lon0"
-    stop
+    call finishbanner
+    stop -1
   end if
   ierr=nf_get_att_real(ncid,nf_global,'lat0',lonlat(2))
-  if (ierr/=0) then
+  if (ierr/=nf_noerr) then
     write(6,*) "ERROR reading lat0"
-    stop
+    call finishbanner
+    stop -1
   end if
-  ierr=nf_get_att_real(ncid,nf_global,'schmidt',schmidt)
-  if (ierr/=0) then
+  ierr=nf_get_att_real(ncid,nf_global,'schmidt',rvals(1))
+  if (ierr/=nf_noerr) then
     write(6,*) "ERROR reading schmidt"
-    stop
+    call finishbanner
+    stop -1
   end if
+  schmidt=rvals(1)
   ierr=nf_inq_dimid(ncid,'longitude',varid)
   ierr=nf_inq_dimlen(ncid,varid,ecodim(1))
   ierr=nf_inq_dimid(ncid,'latitude',varid)
@@ -1155,7 +1240,8 @@ else
 
   If (ierr.NE.0) then
     Write(6,*) "ERROR: Cannot read file ",trim(toponame)
-    Stop
+    call finishbanner
+    Stop -1
   End if
 end if
 
@@ -1168,9 +1254,9 @@ End
 
 Subroutine gettopols(topounit,toponame,lsmsk,ecodim)
 
-Implicit None
+use netcdf_m
 
-include 'netcdf.inc'
+Implicit None
 
 Integer, intent(in) :: topounit
 Integer, dimension(2), intent(in) :: ecodim
@@ -1205,7 +1291,8 @@ end if
 
 If (ierr/=0) then
   Write(6,*) "ERROR: Cannot read file ",trim(toponame)
-  Stop
+  call finishbanner
+  Stop -1
 End if
 
 lsmsk=1.-lsmsk
@@ -1219,9 +1306,9 @@ End
 
 Subroutine gettopohgt(topounit,toponame,hgt,lsmsk,ecodim)
 
-Implicit None
+use netcdf_m
 
-include 'netcdf.inc'
+Implicit None
 
 Integer, intent(in) :: topounit
 Integer, dimension(2), intent(in) :: ecodim
@@ -1242,12 +1329,14 @@ if (ierr==0) then
   ierr=nf_inq_varid(ncid,'zs',varid)
   if (ierr/=0) then
     write(6,*) "ERROR reading zs ",ierr
-    stop
+    call finishbanner
+    stop -1
   end if
   ierr=nf_get_vara_real(ncid,varid,spos,npos,hgt)
   if (ierr/=0) then
     write(6,*) "ERROR reading zs ",ierr
-    stop
+    call finishbanner
+    stop -1
   end if
   hgt=9.80616*hgt
   ierr=nf_inq_varid(ncid,'lsm',varid)
@@ -1267,7 +1356,8 @@ end if
 
 If (ierr/=0) then
   Write(6,*) "ERROR: Cannot read file ",trim(toponame)
-  Stop
+  call finishbanner
+  Stop -1
 End if
 
 lsmsk=1.-lsmsk

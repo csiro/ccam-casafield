@@ -1,3 +1,24 @@
+! Conformal Cubic Atmospheric Model
+    
+! Copyright 2015 Commonwealth Scientific Industrial Research Organisation (CSIRO)
+    
+! This file is part of the Conformal Cubic Atmospheric Model (CCAM)
+!
+! CCAM is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+!
+! CCAM is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+!
+! You should have received a copy of the GNU General Public License
+! along with CCAM.  If not, see <http://www.gnu.org/licenses/>.
+
+!------------------------------------------------------------------------------
+    
 !
 ! THIS FILE CONTAINS MISC SUBROUTINES
 !
@@ -18,7 +39,7 @@ Character*80 baseunit
 baseunit=''
 
 xd(1)=x
-If (inunit.NE.outunit) Then
+If (inunit/=outunit) Then
   Call baserescale(inunit,xd,1,baseunit,1)
   Call baserescale(outunit,xd,-1,baseunit,1)
 End If
@@ -176,7 +197,8 @@ Select Case(inunit)
   Case DEFAULT
     Write(6,*) "ERROR: Unknown unit ",trim(inunit)," for conversion."
     Write(6,*) "       Please contact MJT and get him to fix this."
-    Stop
+    call finishbanner
+    Stop -1
   
 End Select
 
@@ -185,7 +207,8 @@ If (inverse.EQ.1) Then
 Else
   If ((baseunit.NE.actunit).AND.(actunit.NE.'none')) Then
     Write(6,*) "ERROR: Mismatched units ",trim(baseunit)," and ",trim(actunit)
-    Stop
+    call finishbanner
+    Stop -1
   End If
 End If
 
@@ -229,7 +252,7 @@ Integer i
 
 
 ! Not a simple multiplication factor.  Need to rescale point-by-point.
-If (inunit.NE.outunit) Then
+If (inunit/=outunit) Then
   baseunit=''
   Call baserescale(inunit,f,1,baseunit,asize)
   Call baserescale(outunit,f,-1,baseunit,asize)
@@ -285,7 +308,7 @@ outdate(4)=mod(outdate(4),24)
 
 maxday=0
 outdate(3)=outdate(3)+i
-Do While(outdate(3).GT.maxday)
+Do While(outdate(3)>maxday)
 
   Select Case(outdate(2))
   
@@ -294,9 +317,9 @@ Do While(outdate(3).GT.maxday)
       
     Case(2)
       maxday=28
-      If (Mod(Real(outdate(1)),4.).EQ.0.) Then
-        maxday=29
-      End If
+      If (Mod(outdate(1),4)==0)   maxday=29
+      if (mod(outdate(1),100)==0) maxday=28
+      if (mod(outdate(1),400)==0) maxday=29
 
     Case(3)
       maxday=31
@@ -330,15 +353,16 @@ Do While(outdate(3).GT.maxday)
   
     Case DEFAULT
       Write(6,*) "ERROR: Internal error in advdate"
-      Stop
+      call finishbanner
+      Stop -1
   
   End Select
   
-  If (outdate(3).GT.maxday) Then
+  If (outdate(3)>maxday) Then
     outdate(3)=outdate(3)-maxday
     outdate(2)=outdate(2)+1
     maxday=0
-    If (outdate(2).GT.12) Then
+    If (outdate(2)>12) Then
       outdate(1)=outdate(1)+1
       outdate(2)=1
     End If
@@ -357,45 +381,21 @@ Subroutine convertlvl(arrdata,inlvl,outlvl,arrsize)
 
 Implicit None
 
-Integer, dimension(1:3), intent(in) :: arrsize
-Real, dimension(1:arrsize(1),1:arrsize(2),1:arrsize(3)), intent(in) :: inlvl
-Real, dimension(1:arrsize(3)), intent(in) :: outlvl
-Real, dimension(1:arrsize(1),1:arrsize(2),1:arrsize(3)), intent(inout) :: arrdata
-Real, dimension(1:arrsize(3)) :: tempdata
+Integer, dimension(3), intent(in) :: arrsize
+Real, dimension(arrsize(1),arrsize(2),arrsize(3)), intent(in) :: inlvl
+Real, dimension(arrsize(3)), intent(in) :: outlvl
+Real, dimension(arrsize(1),arrsize(2),arrsize(3)), intent(inout) :: arrdata
+Real, dimension(arrsize(3)) :: tempdata
 Integer i,j,k
 
-Do i=1,arrsize(1)
-  Do j=1,arrsize(2)
+Do j=1,arrsize(2)
+  Do i=1,arrsize(1)
     ! Interpolate between levels
     Do k=1,arrsize(3)
       Call lineintp(arrdata(i,j,:),inlvl(i,j,:),outlvl(k),tempdata(k),arrsize(3))
     End Do
     arrdata(i,j,:)=tempdata
   End Do
-End Do
-
-Return
-End
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! This subroutine calculates the integral of the specified array
-!
-
-Subroutine calintegrate(arrdata,xlvl,oval,num)
-
-Implicit None
-
-Integer, intent(in) :: num
-Real, dimension(1:num), intent(in) :: xlvl
-Real, dimension(1:num), intent(in) :: arrdata
-Real, intent(out) :: oval
-Integer i
-
-! variable step length?  Use Trapezoidal
-
-oval=0.
-Do i=2,num
-  oval=oval+(arrdata(i-1)+arrdata(i))*(xlvl(i)-xlvl(i-1))/2.
 End Do
 
 Return
@@ -411,20 +411,16 @@ Subroutine calsigmalevel(slvl,olvl,arrsize,tempdata)
 Implicit None
 
 Integer, dimension(1:3), intent(in) :: arrsize
-Real, dimension(1:arrsize(3)), intent(in) :: slvl
-Real, dimension(1:arrsize(1),1:arrsize(2),1:arrsize(3)), intent(out) :: olvl
-Real, dimension(1:arrsize(1),1:arrsize(2),1:arrsize(3)), intent(in) :: tempdata
-Real, dimension(1:arrsize(3)) :: ilvl
+Real, dimension(arrsize(3)), intent(in) :: slvl
+Real, dimension(arrsize(1),arrsize(2),arrsize(3)), intent(out) :: olvl
+Real, dimension(arrsize(1),arrsize(2),arrsize(3)), intent(in) :: tempdata
+Real, dimension(arrsize(3)) :: ilvl
 Integer i,j,k
 
 olvl=0.
 ilvl=Log(slvl)
-Do i=1,arrsize(1)
-  Do j=1,arrsize(2)
-    Do k=2,arrsize(3)
-      Call calintegrate(tempdata(i,j,1:k),ilvl(1:k),olvl(i,j,k),k)
-    End Do
-  End Do
+Do k=2,arrsize(3)
+  olvl(:,:,k)=olvl(:,:,k-1)+0.5*(tempdata(:,:,k-1)+tempdata(:,:,k))*(ilvl(k)-ilvl(k-1))
 End Do
 olvl=(-287./9.81)*olvl
 
@@ -442,27 +438,28 @@ Implicit None
 Integer, intent(in) :: num
 Real, intent(in) :: posout
 Real, intent(out) :: oval
-Real, dimension(1:num), intent(in) :: dataval,posin
+Real, dimension(num), intent(in) :: dataval,posin
 Integer apos(1),bpos(1)
 Real m
 
-If (posout.LT.Minval(posin)) Then
+If (posout<Minval(posin)) Then
   Write(6,*) "ERROR: Must extrapolate below lowest value"
-  Stop
-Else If (posout.GT.Maxval(posin)) Then
+  call finishbanner
+  Stop -1
+Else If (posout>Maxval(posin)) Then
   Write(6,*) "ERROR: Must extrapolate above highest value"
-  Stop
-Else
-  ! interpolate
-  bpos=Minloc(posin,posin.GE.posout)
-  apos=Maxloc(posin,posin.LE.posout)
-  If (apos(1).EQ.bpos(1)) Then
-    oval=dataval(apos(1))
-  Else 
-    m=(dataval(bpos(1))-dataval(apos(1)))/(posin(bpos(1))-posin(apos(1)))
-    oval=m*(posout-posin(apos(1)))+dataval(apos(1))
-  End If
+  call finishbanner
+  Stop -1
+end if
 
+! interpolate
+bpos=Minloc(posin,posin>=posout)
+apos=Maxloc(posin,posin<=posout)
+If (apos(1)==bpos(1)) Then
+  oval=dataval(apos(1))
+Else 
+  m=(dataval(bpos(1))-dataval(apos(1)))/(posin(bpos(1))-posin(apos(1)))
+  oval=m*(posout-posin(apos(1)))+dataval(apos(1))
 End If
 
 Return
@@ -484,22 +481,10 @@ Real b,c,d
 ! Very basic for now.  Later replace with a bicubic.
 ! Current : z = a + b x + c y + d x y
 
-If ((serlon.EQ.0.).AND.(serlat.EQ.0.)) then
-
-  ipol=dat(1,1)
-
-Else
-
-! After a lot of matrix inverse solving, it turns out that the answer is
-! trival (assuming a regular grid).
-
-  d=dat(2,2)-dat(1,2)-dat(2,1)+dat(1,1)
-  b=dat(2,1)-dat(1,1)
-  c=dat(1,2)-dat(1,1)
-
-  ipol=b*serlon+c*serlat+d*serlon*serlat+dat(1,1)
-
-Endif
+d=dat(2,2)-dat(1,2)-dat(2,1)+dat(1,1)
+b=dat(2,1)-dat(1,1)
+c=dat(1,2)-dat(1,1)
+ipol=b*serlon+c*serlat+d*serlon*serlat+dat(1,1)
 
 Return
 End
@@ -518,9 +503,10 @@ Integer ierr
 
 Read(instr,*,iostat=ierr) sr
 
-if (ierr.ne.0) then
+if (ierr/=0) then
   Write(6,*) "ERROR: String "//trim(instr)//" is not a number."
-  Stop
+  call finishbanner
+  Stop -1
 end if
 
 Return
@@ -595,48 +581,200 @@ implicit none
 integer, dimension(2), intent(out) :: pxy
 integer, dimension(2), intent(in) :: ecodim
 integer, intent(in) ::i,j
-integer nn,nxa,nxb,nya,nyb
-integer nxc,nxd
+integer ii,jj
+real minval,dismsk
 real, dimension(ecodim(1),ecodim(2),2), intent(in) :: rlld
-Real, dimension(ecodim(1),ecodim(2)) :: dismsk
 logical, dimension(ecodim(1),ecodim(2)), intent(in) :: sermsk
-logical, dimension(ecodim(1),ecodim(2)) :: xmsk
 
-nn=1
-nxa=i
-nxb=i
-nxc=i
-nxd=i
-nya=j
-nyb=j
-do while (.not.(any(sermsk(nxa:nxb,nya:nyb)).or.any(sermsk(nxc:nxd,nya:nyb))))
-  nn=nn*2
-  nxa=max(i-nn,1)
-  nxb=min(i+nn,ecodim(1))
-  nxc=min(i-nn+ecodim(1),ecodim(1))
-  nxd=max(i+nn-ecodim(1),1)
-  nya=max(j-nn,1)
-  nyb=min(j+nn,ecodim(2))
+minval=9.E9
+pxy(1)=1
+pxy(2)=1
+do jj=1,ecodim(2)
+  do ii=1,ecodim(1)
+    if (sermsk(ii,jj)) then
+      dismsk=abs(rlld(i,j,1)-rlld(ii,jj,1))
+      if (dismsk>180.) dismsk=abs(360.-dismsk)
+      dismsk=dismsk**2+(rlld(i,j,2)-rlld(ii,jj,2))**2
+      if (dismsk<minval) then
+        minval=dismsk
+        pxy(1)=ii
+        pxy(2)=jj
+      end if
+    end if
+  end do
 end do
-xmsk=.false.
-xmsk(nxa:nxb,nya:nyb)=sermsk(nxa:nxb,nya:nyb)
-if (nxc<nxd) then
-  xmsk(nxc:nxd,nya:nyb)=xmsk(nxc:nxd,nya:nyb).or.sermsk(nxc:nxd,nya:nyb)
-  nxa=min(nxa,nxc)
-  nxb=max(nxb,nxd)
-end if
-where(xmsk(nxa:nxb,nya:nyb))
-  dismsk(nxa:nxb,nya:nyb)=abs(rlld(i,j,1)-rlld(nxa:nxb,nya:nyb,1))
-end where
-where ((dismsk(nxa:nxb,nya:nyb)>180.).and.xmsk(nxa:nxb,nya:nyb))
-  dismsk(nxa:nxb,nya:nyb)=abs(360.-dismsk(nxa:nxb,nya:nyb))
-end where
-where (xmsk(nxa:nxb,nya:nyb))
-  dismsk(nxa:nxb,nya:nyb)=dismsk(nxa:nxb,nya:nyb)**2+(rlld(i,j,2)-rlld(nxa:nxb,nya:nyb,2))**2
-end where
-pxy=Minloc(dismsk(nxa:nxb,nya:nyb),xmsk(nxa:nxb,nya:nyb))
-pxy(1)=pxy(1)+nxa-1
-pxy(2)=pxy(2)+nya-1
 
 return
 end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This subroutine fills an array (based on JLM's code from CCAM with
+! some modifications by MJT)
+!
+
+subroutine fill_cc(a_io,ik,land_in)
+      
+implicit none
+      
+integer :: ik
+real, dimension(ik*ik*6), intent(inout) :: a_io         ! input and output array
+logical, dimension(ik*ik*6), intent(in) :: land_in
+
+call fill_cc_a(a_io,ik,1,land_in)
+
+return
+end
+
+subroutine fill_cc_mask(a_io,ik,land_in,reqmask)
+      
+implicit none
+      
+integer :: ik
+real, dimension(ik*ik*6), intent(inout) :: a_io         ! input and output array
+logical, dimension(ik*ik*6), intent(in) :: land_in
+logical, dimension(ik*ik*6), intent(in) :: reqmask
+
+call fill_cc_a(a_io,ik,1,land_in,reqmask)  
+
+return
+end
+
+    
+subroutine fill_cc_a(a_io,ik,rng,land_in)
+      
+implicit none
+      
+integer, intent(in) :: ik, rng
+real, dimension(ik*ik*6,rng), intent(inout) :: a_io         ! input and output array
+logical, dimension(ik*ik*6), intent(in) :: land_in
+logical, dimension(ik*ik*6) :: reqmask
+
+reqmask = .true.
+call fill_cc_a_mask(a_io,ik,rng,land_in,reqmask)
+
+return
+end
+    
+subroutine fill_cc_a_mask(a_io,ik,rng,land_in,reqmask)
+      
+implicit none
+      
+integer, intent(in) :: ik, rng
+integer :: i,ii,j,n,neighb
+integer :: iminb,imaxb,jminb,jmaxb
+integer :: n_n, n_s, n_e, n_w
+integer, dimension(0:5) :: imin,imax,jmin,jmax
+real, dimension(ik*ik*6,rng), intent(inout) :: a_io         ! input and output array
+real, dimension(ik,ik,0:5) :: a_io_unpack
+real, dimension(0:ik+1,0:ik+1,0:5) :: a_unpack
+real, dimension(4) :: av     
+logical, dimension(ik*ik*6), intent(in) :: land_in
+logical, dimension(ik,ik,0:5) :: land_b
+logical, dimension(0:ik+1,0:ik+1,0:5) :: land_a
+logical, dimension(4) :: mask
+logical, dimension(ik*ik*6), intent(in) :: reqmask
+logical, dimension(ik,ik,0:5) :: finish_mask
+
+do ii = 1,rng
+    
+  imin=1
+  imax=ik
+  jmin=1
+  jmax=ik
+  
+  do n = 0,5    
+    finish_mask(:,:,n) = .not.reshape( reqmask(n*ik*ik+1:(n+1)*ik*ik), (/ ik, ik /) )
+  end do
+  
+  do n = 0,5    
+    a_io_unpack(1:ik,1:ik,n) = reshape( a_io(n*ik*ik+1:(n+1)*ik*ik,ii), (/ ik, ik /) )
+    land_b(:,:,n) = reshape( land_in(n*ik*ik+1:(n+1)*ik*ik), (/ ik, ik /) )
+  end do
+  
+  finish_mask(:,:,:) = finish_mask(:,:,:) .or. land_b(:,:,:)
+
+  do while ( any(.not.finish_mask) )
+    a_unpack(1:ik,1:ik,:)=a_io_unpack(1:ik,1:ik,:)
+    land_a(1:ik,1:ik,:)=land_b(1:ik,1:ik,:)
+  
+    ! update panel boundaries
+    do n = 0,5
+      if ( mod(n,2)==0 ) then
+        n_w = mod(n+5, 6)
+        n_e = mod(n+2, 6)
+        n_n = mod(n+1, 6)
+        n_s = mod(n+4, 6)
+        do i = 1,ik
+          a_unpack(0,i,n)    = a_unpack(ik,i,n_w)
+          a_unpack(ik+1,i,n) = a_unpack(ik+1-i,1,n_e)
+          a_unpack(i,ik+1,n) = a_unpack(i,1,n_n)
+          a_unpack(i,0,n)    = a_unpack(ik,ik+1-i,n_s)
+          land_a(0,i,n)    = land_a(ik,i,n_w)
+          land_a(ik+1,i,n) = land_a(ik+1-i,1,n_e)
+          land_a(i,ik+1,n) = land_a(i,1,n_n)
+          land_a(i,0,n)    = land_a(ik,ik+1-i,n_s)
+        end do ! i
+      else
+        n_w = mod(n+4, 6)
+        n_e = mod(n+1, 6)
+        n_n = mod(n+2, 6)
+        n_s = mod(n+5, 6)
+        do i = 1,ik
+          a_unpack(0,i,n)    = a_unpack(ik+1-i,ik,n_w)
+          a_unpack(ik+1,i,n) = a_unpack(1,i,n_e)
+          a_unpack(i,ik+1,n) = a_unpack(1,ik+1-i,n_n)
+          a_unpack(i,0,n)    = a_unpack(i,ik,n_s)
+          land_a(0,i,n)    = land_a(ik+1-i,ik,n_w)
+          land_a(ik+1,i,n) = land_a(1,i,n_e)
+          land_a(i,ik+1,n) = land_a(1,ik+1-i,n_n)
+          land_a(i,0,n)    = land_a(i,ik,n_s)
+        end do ! i
+      end if   ! mod(n,2)==0 ..else..
+    end do     ! n loop
+ 
+    do n=0,5
+      iminb=ik
+      imaxb=1
+      jminb=ik
+      jmaxb=1
+      do j=jmin(n),jmax(n)
+        do i=imin(n),imax(n)
+          if(.not.land_a(i,j,n))then
+            mask(1)=land_a(i+1,j,n)
+            mask(2)=land_a(i-1,j,n)
+            mask(3)=land_a(i,j+1,n)
+            mask(4)=land_a(i,j-1,n)
+            neighb=count(mask)
+            if(neighb>0)then
+              av(1) = a_unpack(i+1,j,n)
+              av(2) = a_unpack(i-1,j,n)
+              av(3) = a_unpack(i,j+1,n)
+              av(4) = a_unpack(i,j-1,n)
+              a_io_unpack(i,j,n) = sum(av,mask)/real(neighb)
+              land_b(i,j,n) = .true.
+              finish_mask(i,j,n) = .true.
+            else
+              iminb=min(i,iminb)
+              imaxb=max(i,imaxb)
+              jminb=min(j,jminb)
+              jmaxb=max(j,jmaxb)
+            endif
+         endif
+        end do
+      end do
+      imin(n)=iminb
+      imax(n)=imaxb
+      jmin(n)=jminb
+      jmax(n)=jmaxb
+    end do
+  end do
+
+  do n = 0,5
+    a_io(n*ik*ik+1:(n+1)*ik*ik,ii) = reshape( a_io_unpack(1:ik,1:ik,n), (/ ik*ik /) )
+  end do
+  
+end do ! ii loop
+
+
+return
+end    
