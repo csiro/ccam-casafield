@@ -66,7 +66,7 @@ FORCE:
 # Remove mod rule from Modula 2 so GNU make doesn't get confused
 %.o : %.mod
 
-casafield.o : ccinterp.o
+casafield.o : ccinterp.o version.h
 casaread.o : ccinterp.o netcdf_m.o
 ccinterp.o : ccinterp.f90 setxyz_m.o xyzinfo_m.o latltoij_m.o newmpar_m.o
 latltoij_m.o : latltoij_m.f90 xyzinfo_m.o newmpar_m.o

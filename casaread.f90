@@ -42,6 +42,7 @@ integer ncstatus,ncid
 integer j,n,ii,jj,lci,lcj,nface
 real, dimension(sibdim(1),sibdim(2),nfield), intent(out) :: dataout
 real, dimension(sibdim(1),sibdim(2),0:12) :: datatmp
+real, dimension(sibdim(1),sibdim(2)) :: datawork
 real, dimension(sibdim(1),sibdim(2)), intent(in) :: grid,lsdata
 real, dimension(sibdim(1),sibdim(2),2), intent(in) :: rlld
 real, dimension(:,:), allocatable :: coverout
@@ -156,15 +157,21 @@ do n=1,5
       ! replace land values
       sermask=countt.gt.0.and.nint(lsdata).eq.1
       if (any(sermask)) then
-        do lci=1,sibdim(1)
-          do lcj=1,sibdim(2)
-            if (countt(lci,lcj).eq.0) then
-              call findnear(pxy,lci,lcj,sermask,rlld,sibdim)
-              dataout(lci,lcj,n)=dataout(pxy(1),pxy(2),n)
-     	      countt(lci,lcj)=countt(pxy(1),pxy(2))
-            end if
-          end do
-        end do
+        datawork(:,:) = dataout(:,:,n)
+        call fill_cc(datawork(:,:),sibdim(1),sermask)
+        where ( countt==0 )
+          dataout(:,:,n) = datawork(:,:)
+          countt=1
+        end where
+      !  do lci=1,sibdim(1)
+      !    do lcj=1,sibdim(2)
+      !      if (countt(lci,lcj).eq.0) then
+      !        call findnear(pxy,lci,lcj,sermask,rlld,sibdim)
+      !        dataout(lci,lcj,n)=dataout(pxy(1),pxy(2),n)
+      !	      countt(lci,lcj)=countt(pxy(1),pxy(2))
+      !      end if
+      !    end do
+      !  end do
       else
         write(6,*) 'WARN: Cannot find any non-trivial points'
         write(6,*) '      Assume data is trivial'
@@ -220,15 +227,21 @@ do n=1,5
       ! replace land values
       sermask=countt.gt.0
       if (any(sermask)) then
-        do lci=1,sibdim(1)
-          do lcj=1,sibdim(2)
-            if (countt(lci,lcj).eq.0) then
-              call findnear(pxy,lci,lcj,sermask,rlld,sibdim)
-              dataout(lci,lcj,n)=dataout(pxy(1),pxy(2),n)
-     	      countt(lci,lcj)=countt(pxy(1),pxy(2))
-            end if
-          end do
-        end do
+        datawork = dataout(:,:,n)
+        call fill_cc(datawork,sibdim(1),sermask)
+        where ( countt==0 )
+          dataout(:,:,n) = datawork(:,:)
+          countt = 1
+        end where
+      !  do lci=1,sibdim(1)
+      !    do lcj=1,sibdim(2)
+      !      if (countt(lci,lcj).eq.0) then
+      !        call findnear(pxy,lci,lcj,sermask,rlld,sibdim)
+      !        dataout(lci,lcj,n)=dataout(pxy(1),pxy(2),n)
+      !	      countt(lci,lcj)=countt(pxy(1),pxy(2))
+      !      end if
+      !    end do
+      !  end do
       else
         write(6,*) 'WARN: Cannot find any non-trivial points'
         write(6,*) '      Assume data is trivial'
