@@ -26,10 +26,9 @@
 Subroutine getdata(dataout,grid,lsdata,rlld,sibdim,casafile,nfield)
 
 Use ccinterp
+use netcdf_m
 
 Implicit None
-
-include 'netcdf.inc'
 
 integer, intent(in) :: nfield
 integer, dimension(2), intent(in) :: sibdim
@@ -161,7 +160,7 @@ do n=1,5
         call fill_cc(datawork(:,:),sibdim(1),sermask)
         where ( countt==0 )
           dataout(:,:,n) = datawork(:,:)
-          countt=1
+          countt = 1
         end where
       !  do lci=1,sibdim(1)
       !    do lcj=1,sibdim(2)
