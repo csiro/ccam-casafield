@@ -634,7 +634,7 @@ real, dimension(ik*ik*6), intent(inout) :: a_io         ! input and output array
 logical, dimension(ik*ik*6), intent(in) :: land_in
 logical, dimension(ik*ik*6), intent(in) :: reqmask
 
-call fill_cc_a(a_io,ik,1,land_in,reqmask)  
+call fill_cc_a_mask(a_io,ik,1,land_in,reqmask)  
 
 return
 end
