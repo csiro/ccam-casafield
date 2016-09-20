@@ -34,7 +34,7 @@ Implicit None
 
 Integer, intent(in) :: nopts
 Character(len=*), dimension(nopts,2), intent(inout) :: options
-Character*80 buffer
+Character*1024 buffer
 Integer nswitch,status,lastswitch,newswitch,i
 Integer locate,clen
 
@@ -107,7 +107,7 @@ End
 ! This function returns an option value
 !
 
-Character*80 Function returnoption(flag,options,nopts)
+Character*1024 Function returnoption(flag,options,nopts)
 
 Implicit None
 

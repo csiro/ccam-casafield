@@ -28,7 +28,7 @@ implicit none
 
 include 'version.h'
 
-character*80, dimension(:,:), allocatable :: options
+character*1024, dimension(:,:), allocatable :: options
 integer nopts
 
 ! Start banner
@@ -151,7 +151,7 @@ integer, parameter :: nfield = 5
 integer, intent(in) :: nopts
 character(len=*), dimension(nopts,2), intent(in) :: options
 character*80, dimension(3) :: outputdesc
-character*80 returnoption,outfile,infile,topofile
+character*1024 returnoption,outfile,infile,topofile
 character*45 header
 real, dimension(:,:,:), allocatable :: rlld,cfield
 real, dimension(:,:), allocatable :: gridout,lsdata,topdata
