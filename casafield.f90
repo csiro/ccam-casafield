@@ -200,15 +200,25 @@ call ncinitcc(ncidarr,outfile,dimnum(1:3),dimid,adate)
 call ncatt(ncidarr,'lat0',lonlat(2))
 call ncatt(ncidarr,'lon0',lonlat(1))
 call ncatt(ncidarr,'schmidt0',schmidt)
-outputdesc=(/ 'sorder', 'Soil order', 'none' /)
+outputdesc(1)='sorder'
+outputdesc(2)='Soil order'
+outputdesc(3)='none'
 call ncaddvargen(ncidarr,outputdesc,5,2,varid(1),1.,0.)
-outputdesc=(/ 'ndep', 'N deposition rate', 'g m-2 year-1' /)
+outputdesc(1)='ndep'
+outputdesc(2)='N deposition rate'
+outputdesc(3)='g m-2 year-1'
 call ncaddvargen(ncidarr,outputdesc,5,2,varid(2),1.,0.)
-outputdesc=(/ 'nfix', 'N fixation rate', 'g m-2 year-1' /)
+outputdesc(1)='nfix'
+outputdesc(2)='N fixation rate'
+outputdesc(3)='g m-2 year-1'
 call ncaddvargen(ncidarr,outputdesc,5,2,varid(3),1.,0.)
-outputdesc=(/ 'pdust', 'P dust deposition rate', 'g m-2 year-1' /)
+outputdesc(1)='pdust'
+outputdesc(2)='P dust deposition rate'
+outputdesc(3)='g m-2 year-1'
 call ncaddvargen(ncidarr,outputdesc,5,2,varid(4),1.,0.)
-outputdesc=(/ 'pweather', 'P weathering rate', 'g m-2 year-1' /)
+outputdesc(1)='pweather'
+outputdesc(2)='P weathering rate'
+outputdesc(3)='g m-2 year-1'
 call ncaddvargen(ncidarr,outputdesc,5,2,varid(5),1.,0.)
 call ncenddef(ncidarr)
 alonlat(:,1)=(/ 1., real(sibdim(1)), 1. /)
