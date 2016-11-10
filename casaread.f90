@@ -79,19 +79,24 @@ do n=1,5
   select case(n)
     case(1)
       write(6,*) "Processing sorder"
-      varname=(/ 'sorder', 'integer 1 to 12' /)
+      varname(1)='sorder'
+      varname(2)='integer 1 to 12'
     case(2)
       write(6,*) "Processing ndep"
-      varname=(/ 'ndep', 'N g/m2 per year' /)
+      varname(1)='ndep'
+      varname(2)='N g/m2 per year'
     case(3)
       write(6,*) "Processing nfix"
-      varname=(/ 'nfix', 'N g/m2 per year' /)
+      varname(1)='nfix'
+      varname(2)='N g/m2 per year'
     case(4)
       write(6,*) "Processing pdust"
-      varname=(/ 'pdust', 'P g/m2 per year' /)
+      varname(1)='pdust'
+      varname(2)='P g/m2 per year'
     case(5)
       write(6,*) "Processing pwea"
-      varname=(/ 'pwea', 'P g/m2 per year' /)
+      varname(1)='pwea'
+      varname(2)='P g/m2 per year'
   end select
   call getmeta(ncid,varname,coverout,arrsize)
 
@@ -246,7 +251,7 @@ do n=1,5
         write(6,*) '      Assume data is trivial'
         dataout(:,:,n)=0.
         countt=1
-      end if	
+      end if
 
       dataout(:,:,n)=dataout(:,:,n)/real(countt)
 
