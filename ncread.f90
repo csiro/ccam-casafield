@@ -967,7 +967,7 @@ Integer, dimension(1:4,1:2), intent(in) :: arrsize
 Real, dimension(1:arrsize(1,2),1:arrsize(2,2),1:arrsize(3,2),1:arrsize(4,2)), intent(inout) :: arrdata
 Character(len=*), intent(in) :: utype,otype
 Real, dimension(1:arrsize(1,2),1:arrsize(2,2),1:arrsize(3,2),1:arrsize(4,2)) :: tempdata
-Real, dimension(1:arrsize(1,2),1:arrsize(2,2),1:arrsize(3,2),1:arrsize(4,2)) :: mixrdata
+!Real, dimension(1:arrsize(1,2),1:arrsize(2,2),1:arrsize(3,2),1:arrsize(4,2)) :: mixrdata
 Real, dimension(1:arrsize(1,2),1:arrsize(2,2),1,1:arrsize(4,2)) :: presdata
 Real, dimension(1:arrsize(1,2),1:arrsize(2,2),1,1:arrsize(4,2)) :: dotpresdata
 Real, dimension(1:arrsize(3,2)) :: sigmalvl
@@ -982,12 +982,12 @@ If (utype.NE.otype) Then
       Call getncarray(ncid,'temp',arrsize,tempdata)
       Call getncdata(ncid,'temp','units',inunit)
       Call arrfieldrescale(inunit,'K',tempdata,arrsize(:,2))      
-      Call getncarray(ncid,'mixr',arrsize,mixrdata)
-      Call getncdata(ncid,'mixr','units',inunit)
-      Call arrfieldrescale(inunit,'kg/kg',mixrdata,arrsize(:,2))      
+      !Call getncarray(ncid,'mixr',arrsize,mixrdata)
+      !Call getncdata(ncid,'mixr','units',inunit)
+      !Call arrfieldrescale(inunit,'kg/kg',mixrdata,arrsize(:,2))      
 
-!     Calculate virutal temperature ...
-      tempdata=tempdata*(1.+(461.5/287.-1.)*mixrdata)
+!     !Calculate virutal temperature ...
+      !tempdata=tempdata*(1.+(461.5/287.-1.)*mixrdata)
 
       tsize=arrsize
       tsize(3,:)=1
@@ -1000,8 +1000,8 @@ If (utype.NE.otype) Then
       dotpresdata=dotpresdata/864. ! Convert to Pa/s
       Call getncval(ncid,'lev',sigmalvl,arrsize(3,2))
       Do k=1,arrsize(3,2)
-	    arrdata(:,:,k,:)=(arrdata(:,:,k,:)-sigmalvl(k)*dotpresdata(:,:,1,:))*(-287./9.81)*tempdata(:,:,k,:) &
-            /(sigmalvl(k)*presdata(:,:,1,:))
+	    arrdata(:,:,k,:)=(-287./9.81)*tempdata(:,:,k,:)/(sigmalvl(k)*presdata(:,:,1,:))* &
+                         (arrdata(:,:,k,:)-sigmalvl(k)*dotpresdata(:,:,1,:))
       End Do
   
     Case DEFAULT

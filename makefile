@@ -2,7 +2,7 @@
 # Intel compiler options
 ifneq ($(CUSTOM),yes)
 FC = ifort
-XFLAGS = -xHost -I $(NETCDF_ROOT)/include
+XFLAGS = -xHost -I $(NETCDF_ROOT)/include -fp-model precise -traceback
 LIBS = -L $(NETCDF_ROOT)/lib -lnetcdf -lnetcdff
 PPFLAG90 = -fpp
 PPFLAG77 = -fpp

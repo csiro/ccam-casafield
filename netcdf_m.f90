@@ -886,7 +886,8 @@ end interface
 interface nf90_get_var
   module procedure nf90_get_var_int_d0, nf90_get_var_int_d1,                              &
                    nf90_get_var_int8_d1,                                                  &
-                   nf90_get_var_real_d1, nf90_get_var_real_d2, nf90_get_var_real_d3,      &
+                   nf90_get_var_real_d0, nf90_get_var_real_d1, nf90_get_var_real_d2,      &
+                   nf90_get_var_real_d3,                                                  &
                    nf90_get_var_double_d1, nf90_get_var_double_d2, nf90_get_var_double_d3
 end interface nf90_get_var
 
@@ -1538,6 +1539,19 @@ integer function nf90_get_var_int8_d1(ncid,varid,values,start,count,stride,map) 
   values(:) = lvalues(:)
 end function nf90_get_var_int8_d1
 
+integer function nf90_get_var_real_d0(ncid,varid,values,start) result(ierr)
+  implicit none
+  integer, intent(in) :: ncid, varid
+  integer, dimension(:), intent(in), optional :: start
+  integer, dimension(nf_max_var_dims) :: lstart
+  integer lcounter
+  real(kind=4), intent(out) :: values
+  lstart(:) = 1
+  if (present(start)) lstart(1:size(start)) = start(:)
+  ierr = nf_get_var1_real(ncid,varid,lstart,values)
+end function nf90_get_var_real_d0
+
+
 integer function nf90_get_var_real_d1(ncid,varid,values,start,count,stride,map) result(ierr)
   implicit none
   integer, intent(in) :: ncid, varid
@@ -1752,6 +1766,8 @@ integer function nf90_def_var_deflate(ncid,varid,shuffle,deflate,deflate_level) 
   integer, intent(in) :: ncid, varid, shuffle, deflate, deflate_level
 #ifndef usenc3
   ierr = nf_def_var_deflate(ncid,varid,shuffle,deflate,deflate_level)
+#else
+  ierr = 0
 #endif
 end function nf90_def_var_deflate
 
@@ -2568,7 +2584,7 @@ integer function nf_inq_attname(ncid,varid,attnum,tp) result(ierr)
   integer i, ix
   c_ncid = ncid
   c_varid = varid - 1
-  c_attnum = attnum
+  c_attnum = attnum - 1
   c_tp(:) = ''  
   ierr = nc_inq_attname(c_ncid,c_varid,c_attnum,c_tp)
   call fc_strcopy(c_tp,tp)
@@ -2586,7 +2602,7 @@ integer function nf_inq_attid(ncid,varid,name,attnum) result(ierr)
   c_varid = varid - 1
   call cf_strcopy(name,c_name)
   ierr = nc_inq_attid(c_ncid,c_varid,c_name,C_LOC(c_attnum))
-  attnum = c_attnum
+  attnum = c_attnum + 1
 end function nf_inq_attid
 
 integer function nf_inq_att(ncid,varid,name,xtypep,lenp) result(ierr)
