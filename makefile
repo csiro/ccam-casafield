@@ -23,7 +23,7 @@ endif
 # Cray compiler options
 ifeq ($(CRAY),yes)
 FC = ftn
-XFLAGS =
+XFLAGS = -h noomp
 PPFLAG90 = -eZ
 PPFLAG77 = -eZ
 DEBUGFLAG =

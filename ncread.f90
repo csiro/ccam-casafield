@@ -222,9 +222,11 @@ Character(len=*), intent(in) :: varname
 
 Character*80 outname
 
+arrdata = 0.
+
 Call ncfindvarid(ncid,varname,outname,varid)
 If (outname.EQ.'') Then
-  Write(6,*) "ERROR: Cannot determine var id ",trim(varname)," (",ncstatus,")"
+  Write(6,*) "ERROR: Cannot determine var id ",trim(varname)
   call finishbanner
   Stop -1
 End If
@@ -832,6 +834,9 @@ tempsize=1.
 tempsize(1:3,2)=arrsize
 tempsize(4,1)=it
 
+tempdata = 0. ! for Cray compiler
+mixrdata = 0. ! for Cray compiler
+
 ! get temp data
 Call getncarray(ncid,'temp',tempsize,tempdata(:,:,1:tempsize(3,2),:))
 Call getncdata(ncid,'temp','units',inunit)
@@ -1000,8 +1005,8 @@ If (utype.NE.otype) Then
       dotpresdata=dotpresdata/864. ! Convert to Pa/s
       Call getncval(ncid,'lev',sigmalvl,arrsize(3,2))
       Do k=1,arrsize(3,2)
-	    arrdata(:,:,k,:)=(-287./9.81)*tempdata(:,:,k,:)/(sigmalvl(k)*presdata(:,:,1,:))* &
-                         (arrdata(:,:,k,:)-sigmalvl(k)*dotpresdata(:,:,1,:))
+	    arrdata(:,:,k,:)=(-287./9.81)*tempdata(:,:,k,:)*arrdata(:,:,k,:)/(sigmalvl(k)*presdata(:,:,1,:)) &
+                        +sigmalvl(k)*dotpresdata(:,:,1,:)/presdata(:,:,1,:)
       End Do
   
     Case DEFAULT
