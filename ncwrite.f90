@@ -461,7 +461,7 @@ character(len=*), dimension(1:3), intent(in) :: elemdesc
 integer status, strlen, varid
 integer ch_dimid
 integer, dimension(2) :: dimid_a
-integer, parameter :: ch_len = 40
+integer, parameter :: ch_len = 50
 
 if ( numtype == nf_char ) then
     

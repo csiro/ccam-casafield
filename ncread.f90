@@ -671,7 +671,7 @@ Integer, intent(in) :: ncid
 Character(len=*), intent(in) :: valname
 Character(len=*), intent(out) :: outname
 Integer, intent(out) :: valident
-Integer, parameter :: maxname=5
+Integer, parameter :: maxname=6
 Character*80, dimension(1:4,1:maxname) :: varnamelist
 Integer ncstatus,ierr,i,j
 
@@ -686,6 +686,7 @@ varnamelist(3,2)="level"
 varnamelist(3,3)="pres"
 varnamelist(3,4)="lvl"
 varnamelist(3,5)="sigma_level"
+varnamelist(3,6)="olev"
 
 ncstatus = nf_inq_dimid(ncid,valname,valident)
 If (ncstatus==nf_noerr) Then

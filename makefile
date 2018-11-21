@@ -3,7 +3,10 @@
 ifneq ($(CUSTOM),yes)
 FC = ifort
 XFLAGS = -xHost -I $(NETCDF_ROOT)/include -fp-model precise -traceback
-LIBS = -L $(NETCDF_ROOT)/lib -lnetcdf -lnetcdff
+LIBS = -L $(NETCDF_ROOT)/lib -lnetcdf
+ifneq ($(NCCLIB),yes)
+LIBS += -lnetcdff
+endif
 PPFLAG90 = -fpp
 PPFLAG77 = -fpp
 DEBUGFLAG = -check all -debug all -traceback -fpe0
@@ -34,6 +37,11 @@ endif
 ifeq ($(TEST),yes)
 XFLAGS += $(DEBUGFLAG)
 endif
+
+ifeq ($(NCCLIB),yes)
+XFLAGS += -Dncclib
+endif
+
 
 OBJT = casafield.o casaread.o setxyz_m.o ccinterp.o readswitch.o jimcc_m.o \
        latltoij_m.o xyzinfo_m.o newmpar_m.o indices_m.o \
