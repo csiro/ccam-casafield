@@ -795,11 +795,11 @@ Integer, dimension(0:4), intent(in) :: ncidarr
 Integer, intent(in) :: varid
 Integer, dimension(4), intent(in) :: startpos,dimnum
 Real, dimension(dimnum(1),dimnum(2),dimnum(3),dimnum(4)), intent(in) :: dataout
-real, dimension(dimnum(1),dimnum(2),dimnum(3),dimnum(4)) :: dum
+real, dimension(:,:,:,:), allocatable :: dum
 real offset,scale
 real, dimension(1) :: rvals
 Integer, dimension(4) :: start,ncount
-integer, dimension(dimnum(1),dimnum(2),dimnum(3),dimnum(4)) :: idum
+integer, dimension(:,:,:,:), allocatable :: idum
 Integer status,xtype,numofdim
 
 status = nf_inq_varndims(ncidarr(0),varid,numofdim)
@@ -831,16 +831,22 @@ ncount(1:numofdim)=dimnum(1:numofdim)
 Select Case(xtype)
 
   Case(nf_float)
+    allocate( dum(dimnum(1),dimnum(2),dimnum(3),dimnum(4)) )
     dum=(dataout-offset)/scale
     status = nf_put_vara_real(ncidarr(0),varid,start(1:numofdim),ncount(1:numofdim),dum)
+    deallocate( dum )
 
   Case(nf_short)
+    allocate( idum(dimnum(1),dimnum(2),dimnum(3),dimnum(4)) )  
     idum=nint((dataout-offset)/scale)
     status = nf_put_vara_int(ncidarr(0),varid,start(1:numofdim),ncount(1:numofdim),idum)
+    deallocate( idum )
 
   Case (nf_int)
+    allocate( idum(dimnum(1),dimnum(2),dimnum(3),dimnum(4)) )    
     idum=nint((dataout-offset)/scale)
     status = nf_put_vara_int(ncidarr(0),varid,start(1:numofdim),ncount(1:numofdim),idum)
+    deallocate( idum )
 
   Case DEFAULT
     Write(6,*) "ERROR: Internal error in ncwritedat.  Unknown vartype ",xtype

@@ -984,7 +984,7 @@ Character*80 inunit
 If (utype.NE.otype) Then
   Select Case(utype)
 
-    Case('Pa/s')
+    Case('Pa/s', 'Pa s-1')
       Call getncarray(ncid,'temp',arrsize,tempdata)
       Call getncdata(ncid,'temp','units',inunit)
       Call arrfieldrescale(inunit,'K',tempdata,arrsize(:,2))      
@@ -1020,7 +1020,7 @@ If (utype.NE.otype) Then
   
   Select Case(otype)
   
-    Case('m/s')
+    Case('m/s', 'm s-1')
       ! Do nothing
       
     Case DEFAULT
@@ -1135,7 +1135,7 @@ End if
 
 If (inunit.NE.varname(2)) Then
   Write(6,*) "Converting ",trim(inunit)," to ",trim(varname(2))
-  If (inunit.EQ.'Pa/s') Then
+  If (inunit.EQ.'Pa/s' .or. inunit.EQ.'Pa s-1') Then
     Call ncvelconvert(ncid,arrdata,arrsize,inunit,'m/s')
   Else
     ! Convert units

@@ -2,13 +2,7 @@
 # Intel compiler options
 ifneq ($(CUSTOM),yes)
 FC = ifort
-ifeq ($(MAGNUS),yes)
-FC = ftn
-endif
 XFLAGS = -xHost -I $(NETCDF_ROOT)/include -fp-model precise -traceback
-ifeq ($(ZEN3),yes)
-XFLAGS = -axCORE-AVX2 -I $(NETCDF_ROOT)/include -fp-model precise -traceback
-endif
 LIBS = -L $(NETCDF_ROOT)/lib -lnetcdf
 ifneq ($(NCCLIB),yes)
 LIBS += -lnetcdff
@@ -23,9 +17,6 @@ endif
 ifeq ($(GFORTRAN),yes)
 FC = gfortran
 XFLAGS = -O2 -mtune=native -march=native -I $(NETCDF_ROOT)/include
-ifeq ($(ZEN3),yes)
-XFLAGS = -O2 -fallow-argument-mismatch -mtune=native -march=native -I $(NETCDF_ROOT)/include
-endif
 PPFLAG90 = -x f95-cpp-input
 PPFLAG77 = -x f77-cpp-input
 DEBUGFLAG = -g -Wall -Wextra -fbounds-check -fbacktrace
@@ -39,15 +30,6 @@ XFLAGS = -h noomp
 PPFLAG90 = -eZ
 PPFLAG77 = -eZ
 DEBUGFLAG =
-endif
-
-ifeq ($(MAUI),yes)
-FC = ftn
-XFLAGS = -xHost -I $(NETCDF_ROOT)/include -fp-model precise -traceback
-LIBS = -L $(NETCDF_ROOT)/lib -lnetcdf -lnetcdff
-PPFLAG90 = -fpp
-PPFLAG77 = -fpp
-DEBUGFLAG = -check all -debug all -traceback -fpe0
 endif
 
 
@@ -79,9 +61,9 @@ stacklimit.o: stacklimit.c
 	cc -c stacklimit.c
 version.h: FORCE
 	rm -f brokenver tmpver
-	echo "      character(len=*), parameter :: version ='CASAFIELD r'" > brokenver
-	echo "      character(len=*), parameter :: version ='CASAFIELD r`svnversion .`'" > tmpver
-	grep exported tmpver || grep Unversioned tmpver || cmp tmpver brokenver || cmp tmpver version.h || mv tmpver version.h
+	echo "      character(len=*), parameter :: version ='CASAFIELD '" > brokenver
+	echo "      character(len=*), parameter :: version ='CASAFIELD `git log | head -3 | tail -1`'" > tmpver
+	cmp tmpver brokenver || cmp tmpver version.h || mv tmpver version.h
 FORCE:
 
 .f90.o:

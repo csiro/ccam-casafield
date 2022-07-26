@@ -118,19 +118,15 @@ Select Case(inunit)
     actunit='none'  
     ! No change
     
-  Case('g/g')
+  Case('g/g', 'g g-1')
     actunit='ratio'  
     ! No change
 
-  Case('kg/kg')
+  Case('kg/kg', 'kg kg-1')
     actunit='ratio'  
     ! No change
     
-  Case('W/m^2')
-    actunit='W/m^2'
-    ! No change
-    
-  Case('W/m2')
+  Case('W/m^2', 'W m-2', 'W/m2')
     actunit='W/m^2'
     ! No change
    
@@ -166,7 +162,7 @@ Select Case(inunit)
     actunit='gpm'
     ! No change
     
-  Case('m2/s2')
+  Case('m2/s2', 'm2 s-2')
     actunit='gpm'
     If (inverse.EQ.1) Then
       x=x/0.98
@@ -174,7 +170,7 @@ Select Case(inunit)
       x=x*0.98
     End If
 
-  Case('kg/m^2/s')
+  Case('kg/m^2/s', 'kg m-2 s-1')
     actunit='mm/hr'
     If (inverse.EQ.1) Then
       x=x*3600.
@@ -182,7 +178,7 @@ Select Case(inunit)
       x=x/3600.
     End If
   
-  Case('mm/day')
+  Case('mm/day', 'mm day-1')
     actunit='mm/hr'
     If (inverse.EQ.1) Then
       x=x/24.
@@ -190,10 +186,26 @@ Select Case(inunit)
       x=x*24.
     End If
  
-  Case('mm/hr')
+  Case('mm/hr', 'mm hr-1')
     actunit='mm/hr'
     ! No change
+    
+  Case('m/s', 'm s-1')
+    actunit='m/s'
+    ! No change
+    
+  Case('hPa/day', 'hPa day-1')
+    actunit='hPa/day'
+    ! No change
+    
+  Case('m2/s3', 'm2 s-3')
+    actunit='m2/s3'
+    ! No change
 
+  Case('Pa/s', 'Pa s-1')
+    actunit='Pa/s'
+    ! No change
+    
   Case DEFAULT
     Write(6,*) "ERROR: Unknown unit ",trim(inunit)," for conversion."
     Write(6,*) "       Please contact MJT and get him to fix this."
