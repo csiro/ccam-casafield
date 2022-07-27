@@ -62,7 +62,7 @@ stacklimit.o: stacklimit.c
 version.h: FORCE
 	rm -f brokenver tmpver
 	echo "      character(len=*), parameter :: version ='CASAFIELD '" > brokenver
-	echo "      character(len=*), parameter :: version ='CASAFIELD `git log | head -3 | tail -1`'" > tmpver
+	echo "      character(len=*), parameter :: version ='CASAFIELD `git log | head -3 | tail -1`" "`git log | head -1`'" > tmpver
 	cmp tmpver brokenver || cmp tmpver version.h || mv tmpver version.h
 FORCE:
 
