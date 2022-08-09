@@ -22,6 +22,15 @@ PPFLAG77 = -x f77-cpp-input
 DEBUGFLAG = -g -Wall -Wextra -fbounds-check -fbacktrace
 endif
 
+# Setonix compiler options
+ifeq ($(SETONIX),yes)
+FC = ftn
+LIBS =
+XFLAGS = -O2 -mtune=native -march=native -fallow-argument-mismatch -Dncclib
+PPFLAG90 = -x f95-cpp-input
+PPFLAG77 = -x f77-cpp-input
+DEBUGFLAG = -g -Wall -Wextra -fbounds-check -fbacktrace
+endif
 
 # Cray compiler options
 ifeq ($(CRAY),yes)
@@ -61,8 +70,10 @@ stacklimit.o: stacklimit.c
 	cc -c stacklimit.c
 version.h: FORCE
 	rm -f brokenver tmpver
-	echo "      character(len=*), parameter :: version ='CASAFIELD '" > brokenver
-	echo "      character(len=*), parameter :: version ='CASAFIELD `git log | head -3 | tail -1`" "`git log | head -1`'" > tmpver
+	echo "character(len=*), parameter :: version = &" > brokenver
+	echo "'CASAFIELD '" >> brokenver
+	echo "character(len=*), parameter :: version = &" > tmpver
+	echo "'CASAFIELD `git log | head -3 | tail -1`" "`git log | head -1`'" >> tmpver
 	cmp tmpver brokenver || cmp tmpver version.h || mv tmpver version.h
 FORCE:
 
