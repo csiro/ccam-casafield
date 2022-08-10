@@ -25,7 +25,7 @@ endif
 # Setonix compiler options
 ifeq ($(SETONIX),yes)
 FC = ftn
-LIBS =
+LIBS = -lnetcdf
 XFLAGS = -O2 -mtune=native -march=native -fallow-argument-mismatch -Dncclib
 PPFLAG90 = -x f95-cpp-input
 PPFLAG77 = -x f77-cpp-input
