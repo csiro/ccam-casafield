@@ -152,7 +152,7 @@ integer, intent(in) :: nopts
 character(len=*), dimension(nopts,2), intent(in) :: options
 character*80, dimension(3) :: outputdesc
 character*1024 returnoption,outfile,infile,topofile
-character*45 header
+character*47 header
 real, dimension(:,:,:), allocatable :: rlld,cfield
 real, dimension(:,:), allocatable :: gridout,lsdata,topdata
 real, dimension(2) :: lonlat
