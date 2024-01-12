@@ -1,6 +1,6 @@
 ! Conformal Cubic Atmospheric Model
     
-! Copyright 2016 Commonwealth Scientific Industrial Research Organisation (CSIRO)
+! Copyright 2016-2024 Commonwealth Scientific Industrial Research Organisation (CSIRO)
     
 ! This file is part of the Conformal Cubic Atmospheric Model (CCAM)
 !
@@ -35,12 +35,6 @@ integer nopts
 write(6,*) "=============================================================================="
 write(6,*) "CCAM: Starting casafield"
 write(6,*) "=============================================================================="
-
-
-#ifndef stacklimit
-! For linux only - removes stacklimit on all processors
-call setstacklimit(-1)
-#endif 
 
 
 write(6,*) 'CASAFIELD - CASA fields to CC grid'

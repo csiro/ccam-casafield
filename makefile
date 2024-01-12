@@ -4,9 +4,9 @@ ifneq ($(CUSTOM),yes)
 FC = ifort
 XFLAGS = -xHost -I $(NETCDF_ROOT)/include -fp-model precise -traceback
 LIBS = -L $(NETCDF_ROOT)/lib -lnetcdf
-ifneq ($(NCCLIB),yes)
-LIBS += -lnetcdff
-endif
+#ifneq ($(NCCLIB),yes)
+#LIBS += -lnetcdff
+#endif
 PPFLAG90 = -fpp
 PPFLAG77 = -fpp
 DEBUGFLAG = -check all -debug all -traceback -fpe0
@@ -47,15 +47,15 @@ ifeq ($(TEST),yes)
 XFLAGS += $(DEBUGFLAG)
 endif
 
-ifeq ($(NCCLIB),yes)
-XFLAGS += -Dncclib
-endif
+#ifeq ($(NCCLIB),yes)
+#XFLAGS += -Dncclib
+#endif
 
 
 OBJT = casafield.o casaread.o setxyz_m.o ccinterp.o readswitch.o jimcc_m.o \
        latltoij_m.o xyzinfo_m.o newmpar_m.o indices_m.o \
        parm_m.o precis_m.o ind_m.o jimco_m.o jim_utils.o nfft_m.o \
-       ncread.o ncwrite.o misc.o netcdf_m.o stacklimit.o
+       ncread.o ncwrite.o misc.o netcdf_m.o
 
 casafield :$(OBJT)
 	$(FC) $(XFLAGS) $(OBJT) $(LIBS) -o casafield
@@ -66,8 +66,6 @@ clean:
 
 .SUFFIXES:.f90
 
-stacklimit.o: stacklimit.c
-	cc -c stacklimit.c
 version.h: FORCE
 	rm -f brokenver tmpver
 	echo "character(len=*), parameter :: version = &" > brokenver
