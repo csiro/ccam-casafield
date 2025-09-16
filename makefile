@@ -38,6 +38,15 @@ PPFLAG77 = -eZ
 DEBUGFLAG =
 endif
 
+# NVIDIA
+ifeq ($(NVFORTRAN),yes)
+FC = nvfortran
+XFLAGS = -fast -tp=host -O4
+LIBS = -L $(NETCDF_ROOT)/lib -lnetcdf
+PPFLAG90 = -cpp
+PPFLAG77 = -cpp
+DEBUGFLAG = -g -Mbounds
+endif
 
 # Testing - I/O and fpmodel
 ifeq ($(TEST),yes)
